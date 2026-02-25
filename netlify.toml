@@ -9,10 +9,8 @@
 [[plugins]]
   package = "@netlify/plugin-nextjs"
 
-[[redirects]]
-  from = "/*"
-  to = "/index.html"
-  status = 200
+# Redirects removidos pois o plugin do Next.js cuida disso automaticamente
+
 
 # Observação: Netlify não suporta o campo "crons" do vercel.json.
 # As rotas /api/cron/* devem ser chamadas por um disparador externo 
