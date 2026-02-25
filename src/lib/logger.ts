@@ -1,3 +1,6 @@
+// SERVER-ONLY: Do not import this module in client components or client hooks.
+// Use console.log/console.error in client-side code instead.
+import 'server-only'
 import pino from 'pino'
 
 export const logger = pino({
