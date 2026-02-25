@@ -63,3 +63,4 @@ export default function RootLayout({
     </ClerkProvider>
   );
 }
+// Checked and layout doesn't have maps.

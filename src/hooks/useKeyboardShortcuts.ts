@@ -1,4 +1,4 @@
-'use client'
+"use client";
 
 import { useHotkeys } from 'react-hotkeys-hook'
 import { useQueryClient } from '@tanstack/react-query'

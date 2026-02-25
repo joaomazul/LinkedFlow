@@ -1,4 +1,4 @@
-'use client'
+"use client";
 
 import { useRouter } from 'next/navigation'
 import { useProfilesStore } from '@/store/profiles.store'

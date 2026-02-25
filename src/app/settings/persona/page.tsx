@@ -1,12 +1,7 @@
-'use client'
+import PersonaPage from './PersonaPageClient'
 
-import { AppShell } from '@/components/layout/AppShell'
-import { PersonaEditor } from '@/components/settings/PersonaEditor'
+export const dynamic = 'force-dynamic'
 
-export default function PersonaPage() {
-    return (
-        <AppShell title="Meu Perfil IA" showRightPanel={false}>
-            <PersonaEditor />
-        </AppShell>
-    )
+export default function Page() {
+    return <PersonaPage />
 }

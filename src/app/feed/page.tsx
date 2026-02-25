@@ -1,12 +1,7 @@
-'use client'
+import FeedPage from './FeedPageClient'
 
-import { AppShell } from '@/components/layout/AppShell'
-import { FeedContainer } from '@/components/feed/FeedContainer'
+export const dynamic = 'force-dynamic'
 
-export default function FeedPage() {
-    return (
-        <AppShell title="Feed" showRightPanel={true}>
-            <FeedContainer />
-        </AppShell>
-    )
+export default function Page() {
+    return <FeedPage />
 }

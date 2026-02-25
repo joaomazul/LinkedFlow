@@ -1,10 +1,7 @@
-import { AccountSettings } from '@/components/settings/AccountSettings'
-import { AppShell } from '@/components/layout/AppShell'
+import AccountPage from './AccountPageClient'
 
-export default function AccountSettingsPage() {
-    return (
-        <AppShell title="Conta LinkedIn">
-            <AccountSettings />
-        </AppShell>
-    )
+export const dynamic = 'force-dynamic'
+
+export default function Page() {
+    return <AccountPage />
 }

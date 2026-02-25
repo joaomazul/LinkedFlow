@@ -1,4 +1,7 @@
+"use client";
+
 import { useQuery } from '@tanstack/react-query'
+
 import type { ApiResponse } from '@/lib/utils/api-response'
 import type { Post } from '@/db/schema/posts'
 
