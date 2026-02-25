@@ -4,9 +4,7 @@ const schema = z.object({
     DATABASE_URL: z.string().url(),
     CLERK_SECRET_KEY: z.string().min(1),
     UNIPILE_API_KEY: z.string().min(1),
-    UNIPILE_DSN: z.string().min(1).refine(v => !v.startsWith('https'), {
-        message: 'UNIPILE_DSN não deve ter https://'
-    }),
+    UNIPILE_DSN: z.string().min(1),
     UNIPILE_LINKEDIN_ACCOUNT_ID: z.string().min(1),
     UNIPILE_REQUEST_TIMEOUT_MS: z.coerce.number().default(15000),
     UNIPILE_RETRY_ATTEMPTS: z.coerce.number().default(3),
@@ -27,8 +25,21 @@ const schema = z.object({
 const parsed = schema.safeParse(process.env)
 
 if (!parsed.success) {
+    const isBuildPhase = process.env.NEXT_PHASE === 'phase-production-build'
     const issues = parsed.error.issues.map(i => `  ${i.path}: ${i.message}`)
-    throw new Error('❌ Variáveis de ambiente inválidas:\n' + issues.join('\n'))
+
+    if (isBuildPhase) {
+        // During static generation, some env vars may be placeholders — warn but don't crash
+        console.warn('⚠️ [env] Variáveis de ambiente com problemas no build:\n' + issues.join('\n'))
+    } else {
+        throw new Error('❌ Variáveis de ambiente inválidas:\n' + issues.join('\n'))
+    }
 }
 
-export const env = parsed.data
+export const env = (
+    parsed.success
+        ? parsed.data
+        : process.env.NEXT_PHASE === 'phase-production-build'
+            ? ({} as z.infer<typeof schema>)
+            : schema.parse(process.env)
+) as z.infer<typeof schema>

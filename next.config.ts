@@ -2,6 +2,20 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   serverExternalPackages: ['pino', 'pino-pretty'],
+  async redirects() {
+    return [
+      {
+        source: '/',
+        destination: '/feed',
+        permanent: false,
+      },
+      {
+        source: '/settings',
+        destination: '/settings/prompts',
+        permanent: false,
+      },
+    ]
+  },
   async headers() {
     return [
       {
