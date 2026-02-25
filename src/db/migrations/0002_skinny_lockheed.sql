@@ -1,0 +1,1 @@
+CREATE UNIQUE INDEX "mp_user_url_unique" ON "monitored_profiles" USING btree ("user_id","linkedin_url");

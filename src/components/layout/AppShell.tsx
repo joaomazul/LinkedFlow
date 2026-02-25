@@ -1,0 +1,135 @@
+'use client'
+
+import React from 'react'
+import { Sidebar } from './Sidebar'
+import { Topbar } from './Topbar'
+import { RightPanel } from './RightPanel'
+import { usePathname } from 'next/navigation'
+import { AccountStatusBanner } from '@/components/unipile/AccountStatusBanner'
+import { motion, AnimatePresence } from 'framer-motion'
+import { cn } from '@/lib/utils'
+
+import { useSettingsStore } from '@/store/settings.store'
+import { useProfilesStore } from '@/store/profiles.store'
+
+interface AppShellProps {
+    children: React.ReactNode
+    title: string
+    showRightPanel?: boolean
+}
+
+export function AppShell({ children, title, showRightPanel = false }: AppShellProps) {
+    const pathname = usePathname()
+    const isFeed = pathname === '/feed'
+    const [isSidebarOpen, setIsSidebarOpen] = React.useState(false)
+
+    const setLinkedinAccount = useSettingsStore(s => s.setLinkedinAccount)
+    const setSettings = useSettingsStore(s => s.setSettings)
+    const updatePersona = useSettingsStore(s => s.updatePersona)
+    const updateCommentStyle = useSettingsStore(s => s.updateCommentStyle)
+    const setProfiles = useProfilesStore(s => s.setProfiles)
+    const setGroups = useProfilesStore(s => s.setGroups)
+
+    // Hidratação DB -> Zustand (Caso localStore esteja vazio)
+    React.useEffect(() => {
+        async function hydrate() {
+            try {
+                // Sempre tentamos hidratar se estivermos logados para garantir paridade com DB
+                const res = await fetch('/api/settings')
+                const json = await res.json()
+
+                if (json.ok && json.data) {
+                    const { data } = json
+
+                    // Atualiza configurações básicas
+                    const accountId = data.linkedinAccountId || process.env.NEXT_PUBLIC_UNIPILE_LINKEDIN_ACCOUNT_ID
+
+                    setSettings({
+                        linkedinAccountId: accountId || undefined,
+                        autoRefreshInterval: data.autoRefreshInterval || 0
+                    })
+
+                    if (data.persona) {
+                        updatePersona(data.persona)
+                    }
+                    if (data.groups) {
+                        setGroups(data.groups)
+                    }
+                    if (data.profiles && data.profiles.length > 0) {
+                        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                        setProfiles(data.profiles.map((p: any) => ({
+                            id: p.id,
+                            name: p.name,
+                            url: p.linkedinUrl || p.url || '',
+                            linkedinId: p.linkedinId ?? undefined,
+                            role: p.role || '',
+                            company: p.company ?? undefined,
+                            avatarUrl: p.avatarUrl ?? undefined,
+                            initials: p.initials,
+                            color: p.color,
+                            active: p.active,
+                            groupId: p.groupId ?? undefined,
+                            addedAt: p.createdAt ? new Date(p.createdAt).toISOString() : new Date().toISOString(),
+                            lastFetchedAt: p.lastFetchedAt ? new Date(p.lastFetchedAt).toISOString() : undefined,
+                        })))
+                    }
+                    if (data.styles && data.styles.length > 0) {
+                        data.styles.forEach((style: { styleKey: Parameters<typeof updateCommentStyle>[0]; prompt: string; active: boolean; label: string }) => {
+                            updateCommentStyle(style.styleKey, {
+                                prompt: style.prompt,
+                                active: style.active,
+                                label: style.label
+                            })
+                        })
+                    }
+                }
+            } catch (err) {
+                console.error('Falha na hidratação de segurança:', err)
+            }
+        }
+        hydrate()
+    }, [setLinkedinAccount, setSettings, updatePersona, updateCommentStyle, setProfiles])
+
+    return (
+        <div className="flex h-screen overflow-hidden bg-lf-bg">
+            {/* Mobile Sidebar Overlay */}
+            <AnimatePresence>
+                {isSidebarOpen && (
+                    <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        onClick={() => setIsSidebarOpen(false)}
+                        className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[60] lg:hidden"
+                    />
+                )}
+            </AnimatePresence>
+
+            {/* Sidebar Container */}
+            <div className={cn(
+                "fixed inset-y-0 left-0 z-[70] transition-transform duration-300 transform lg:relative lg:translate-x-0 w-[264px] shrink-0 h-full",
+                isSidebarOpen ? "translate-x-0" : "-translate-x-full"
+            )}>
+                <Sidebar />
+            </div>
+
+            <div className="flex flex-1 flex-col overflow-hidden relative">
+                <Topbar
+                    title={title}
+                    onMenuClick={() => setIsSidebarOpen(true)}
+                />
+                <main className="flex-1 overflow-y-auto custom-scrollbar">
+                    <AccountStatusBanner />
+                    <div className="relative pb-20 lg:pb-0 px-4 md:px-0">
+                        {children}
+                    </div>
+                </main>
+            </div>
+
+            {/* Right Panel - Hidden on Mobile */}
+            <div className="hidden xl:block h-full">
+                {(showRightPanel || isFeed) && <RightPanel />}
+            </div>
+        </div>
+    )
+}

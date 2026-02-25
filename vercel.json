@@ -1,0 +1,52 @@
+{
+    "$schema": "https://openapi.vercel.sh/vercel.json",
+    "crons": [
+        {
+            "path": "/api/cron/cleanup",
+            "schedule": "0 3 * * 0"
+        },
+        {
+            "path": "/api/campaigns/cron/poll",
+            "schedule": "*/30 * * * *"
+        },
+        {
+            "path": "/api/campaigns/cron/execute",
+            "schedule": "*/15 * * * *"
+        },
+        {
+            "path": "/api/cron/sync-analytics",
+            "schedule": "0 2 * * *"
+        },
+        {
+            "path": "/api/cron/refresh-brand-voice",
+            "schedule": "0 4 * * 0"
+        },
+        {
+            "path": "/api/cron/run-cadence",
+            "schedule": "0 7 * * *"
+        }
+    ],
+    "functions": {
+        "src/app/api/ai/generate-comment/route.ts": {
+            "maxDuration": 60
+        },
+        "src/app/api/linkedin/posts/[postId]/comment/route.ts": {
+            "maxDuration": 30
+        },
+        "src/app/api/campaigns/cron/poll/route.ts": {
+            "maxDuration": 300
+        },
+        "src/app/api/campaigns/cron/execute/route.ts": {
+            "maxDuration": 300
+        },
+        "src/app/api/cron/sync-analytics/route.ts": {
+            "maxDuration": 300
+        },
+        "src/app/api/cron/refresh-brand-voice/route.ts": {
+            "maxDuration": 300
+        },
+        "src/app/api/cron/run-cadence/route.ts": {
+            "maxDuration": 300
+        }
+    }
+}

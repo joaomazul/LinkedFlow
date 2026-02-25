@@ -1,0 +1,123 @@
+"use client"
+
+import { useEffect, useState } from 'react'
+import { OverviewCards } from '@/components/analytics/OverviewCards'
+import { PerformanceChart } from '@/components/analytics/PerformanceChart'
+import { InsightsFeed } from '@/components/analytics/InsightsFeed'
+import { TopPosts } from '@/components/analytics/TopPosts'
+import { BestTimesHeatmap } from '@/components/analytics/BestTimesHeatmap'
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue
+} from '@/components/ui/select'
+// import { useToast } from '@/components/ui/use-toast'
+
+export default function AnalyticsPage() {
+    const [period, setPeriod] = useState('30d')
+    const [data, setData] = useState<any>(null)
+    const [isLoading, setIsLoading] = useState(true)
+    // const { toast } = useToast()
+
+    useEffect(() => {
+        fetchData()
+    }, [period])
+
+    async function fetchData() {
+        setIsLoading(true)
+        try {
+            const res = await fetch(`/api/analytics/overview?period=${period}`)
+            const json = await res.json()
+            if (json.ok) {
+                setData(json.data)
+            }
+        } catch (error) {
+            console.error('Erro ao carregar dados:', error)
+            /*
+            toast({
+                title: 'Erro ao carregar dados',
+                description: 'Não foi possível carregar os dados de analytics.',
+                variant: 'destructive',
+            })
+            */
+        } finally {
+            setIsLoading(false)
+        }
+    }
+
+    async function handleMarkAsRead(id: string) {
+        try {
+            await fetch(`/api/analytics/insights/${id}`, { method: 'PATCH' })
+            setData((prev: any) => ({
+                ...prev,
+                recentInsights: prev.recentInsights.filter((i: any) => i.id !== id)
+            }))
+        } catch (error) {
+            console.error('Erro ao marcar insight como lido')
+        }
+    }
+
+    // Mock data para o gráfico se não houver snapshots reais ainda
+    const chartData = [
+        { date: '01/02', value: 400 },
+        { date: '05/02', value: 300 },
+        { date: '10/02', value: 900 },
+        { date: '15/02', value: 200 },
+        { date: '20/02', value: 500 },
+        { date: '25/02', value: 800 },
+    ]
+
+    return (
+        <div className="flex-1 space-y-6 p-8 pt-6">
+            <div className="flex items-center justify-between space-y-2">
+                <div>
+                    <h2 className="text-3xl font-bold tracking-tight">Analytics Dashboard</h2>
+                    <p className="text-muted-foreground">
+                        Acompanhe seu desempenho no LinkedIn e o progresso das suas campanhas.
+                    </p>
+                </div>
+                <div className="flex items-center space-x-2">
+                    <Select value={period} onValueChange={setPeriod}>
+                        <SelectTrigger className="w-[180px]">
+                            <SelectValue placeholder="Selecionar Período" />
+                        </SelectTrigger>
+                        <SelectContent>
+                            <SelectItem value="7d">Últimos 7 dias</SelectItem>
+                            <SelectItem value="30d">Últimos 30 dias</SelectItem>
+                            <SelectItem value="90d">Últimos 90 dias</SelectItem>
+                        </SelectContent>
+                    </Select>
+                </div>
+            </div>
+
+            <OverviewCards data={data?.metrics} isLoading={isLoading} />
+
+            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-7">
+                <PerformanceChart
+                    data={chartData}
+                    title="Engajamento no LinkedIn"
+                    dataKey="value"
+                    color="#0ea5e9"
+                />
+                <div className="col-span-1 lg:col-span-3">
+                    <InsightsFeed
+                        insights={data?.recentInsights || []}
+                        onMarkAsRead={handleMarkAsRead}
+                        isLoading={isLoading}
+                    />
+                </div>
+            </div>
+
+            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-7">
+                <div className="col-span-1 lg:col-span-4">
+                    <BestTimesHeatmap data={[]} />
+                </div>
+                <div className="col-span-1 lg:col-span-3">
+                    <TopPosts posts={data?.topPosts || []} />
+                </div>
+            </div>
+        </div>
+    )
+}
