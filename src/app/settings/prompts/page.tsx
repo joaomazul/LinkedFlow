@@ -1,12 +1,7 @@
-'use client'
+import PromptsPage from './PromptsPageClient'
 
-import { AppShell } from '@/components/layout/AppShell'
-import { PromptsEditor } from '@/components/settings/PromptsEditor'
+export const dynamic = 'force-dynamic'
 
-export default function PromptsPage() {
-    return (
-        <AppShell title="Configuração de Prompts" showRightPanel={false}>
-            <PromptsEditor />
-        </AppShell>
-    )
+export default function Page() {
+    return <PromptsPage />
 }

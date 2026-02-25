@@ -1,4 +1,7 @@
+"use client";
+
 import { useQuery } from '@tanstack/react-query'
+
 import type { UnipileAccount } from '@/types/unipile.types'
 import type { ApiResponse } from '@/lib/utils/api-response'
 

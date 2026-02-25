@@ -1,4 +1,4 @@
-'use client'
+"use client";
 
 import { RefreshCw, X, ChevronRight } from 'lucide-react'
 import { cn } from '@/lib/utils'
