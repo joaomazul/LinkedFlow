@@ -21,16 +21,7 @@ export async function refreshAllBrandVoices() {
             try {
                 log.info({ userId: settings.userId }, 'Refreshing brand voice for user')
 
-                let selfProfileId: string | null = null
-                try {
-                    const meData = await getAccount(settings.activeLinkedinAccountId) as any
-                    selfProfileId = meData?.id ?? meData?.profile_id ?? meData?.provider_id ?? null
-                } catch {
-                    log.warn(`[brand-voice-refresher] Não foi possível obter selfProfileId para userId ${settings.userId}`)
-                }
-
-                if (!selfProfileId) continue
-
+                const selfProfileId = 'me'
                 await analyzeBrandVoice(settings.userId, settings.activeLinkedinAccountId, selfProfileId)
             } catch (err) {
                 log.error({ userId: settings.userId, err: (err as Error).message }, 'Failed to refresh for user')
