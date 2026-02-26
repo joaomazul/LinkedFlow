@@ -20,6 +20,7 @@ interface Campaign {
 export default function CampaignsPage() {
     const [campaigns, setCampaigns] = useState<Campaign[]>([])
     const [loading, setLoading] = useState(true)
+    const [filter, setFilter] = useState<string>('all')
 
     useEffect(() => {
         fetch('/api/campaigns')
@@ -31,55 +32,114 @@ export default function CampaignsPage() {
             .catch(() => setLoading(false))
     }, [])
 
-    return (
-        <div className="flex flex-col h-full bg-lf-s2">
-            {/* Header */}
-            <header className="h-[70px] border-b border-lf-border bg-white px-8 flex items-center justify-between shrink-0">
-                <div>
-                    <h1 className="lf-title text-xl">Campanhas</h1>
-                    <p className="lf-caption text-lf-text3">Monitore posts e automatize seu social selling</p>
-                </div>
+    const filtered = filter === 'all' ? campaigns : campaigns.filter(c => c.status === filter)
 
+    const totalLeads = campaigns.reduce((s, c) => s + c.totalCaptured, 0)
+    const totalCompleted = campaigns.reduce((s, c) => s + c.totalCompleted, 0)
+    const conversionRate = totalLeads > 0 ? Math.round((totalCompleted / totalLeads) * 100) : 0
+
+    const filters = [
+        { key: 'all', label: 'Todas' },
+        { key: 'active', label: 'Ativas' },
+        { key: 'paused', label: 'Pausadas' },
+        { key: 'completed', label: 'Finalizadas' },
+    ]
+
+    return (
+        <div className="flex flex-col gap-6 p-6 md:p-8">
+            {/* Header */}
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                <div>
+                    <h1 className="text-2xl md:text-3xl font-bold tracking-tight">Campanhas</h1>
+                    <p className="text-sm text-muted-foreground mt-1">Monitore posts e automatize seu social selling</p>
+                </div>
                 <Link
                     href="/campaigns/new"
-                    className="h-10 px-4 bg-lf-accent text-white rounded-lg lf-caption font-semibold flex items-center gap-2 hover:bg-lf-accent/90 transition-all shadow-md active:scale-95"
+                    className="h-10 px-5 bg-lf-accent text-white rounded-lg text-sm font-semibold flex items-center gap-2 hover:bg-lf-accent/90 transition-all shadow-md active:scale-95 w-fit"
                 >
                     <Plus size={18} />
                     Nova Campanha
                 </Link>
-            </header>
+            </div>
 
-            <main className="flex-1 overflow-y-auto p-8">
-                {loading ? (
-                    <div className="flex items-center justify-center py-20">
-                        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-lf-accent"></div>
-                    </div>
-                ) : campaigns.length === 0 ? (
-                    <div className="max-w-md mx-auto mt-12 text-center flex flex-col items-center gap-4">
-                        <div className="h-16 w-16 bg-lf-s1 rounded-full flex items-center justify-center text-lf-text4 border border-lf-border">
-                            <Target size={32} />
-                        </div>
-                        <div>
-                            <h3 className="lf-title text-lg mb-1">Nenhuma campanha ativa</h3>
-                            <p className="lf-caption text-lf-text3 text-center">
-                                Crie sua primeira campanha de Lead Magnet para começar a capturar leads automaticamente de seus posts.
-                            </p>
-                        </div>
-                        <Link
-                            href="/campaigns/new"
-                            className="mt-2 h-11 px-6 bg-lf-accent text-white rounded-lg lf-caption font-semibold flex items-center gap-2 hover:bg-lf-accent/90 transition-all"
+            {/* Stats Bar */}
+            {campaigns.length > 0 && (
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                    <StatsCard label="Campanhas" value={campaigns.length} icon={<Target size={16} className="text-lf-accent" />} />
+                    <StatsCard label="Leads Capturados" value={totalLeads} icon={<Users size={16} className="text-blue-500" />} />
+                    <StatsCard label="Concluídos" value={totalCompleted} icon={<Zap size={16} className="text-emerald-500" />} />
+                    <StatsCard label="Conversão" value={`${conversionRate}%`} icon={<Target size={16} className="text-amber-500" />} />
+                </div>
+            )}
+
+            {/* Filter Tabs */}
+            {campaigns.length > 0 && (
+                <div className="flex gap-1 p-1 bg-muted/50 rounded-lg w-fit">
+                    {filters.map(f => (
+                        <button
+                            key={f.key}
+                            onClick={() => setFilter(f.key)}
+                            className={cn(
+                                'px-4 py-1.5 rounded-md text-xs font-semibold transition-all',
+                                filter === f.key
+                                    ? 'bg-white text-lf-accent shadow-sm'
+                                    : 'text-muted-foreground hover:text-foreground'
+                            )}
                         >
-                            Começar agora
-                        </Link>
+                            {f.label}
+                        </button>
+                    ))}
+                </div>
+            )}
+
+            {/* Content */}
+            {loading ? (
+                <div className="flex items-center justify-center py-20">
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-lf-accent"></div>
+                </div>
+            ) : campaigns.length === 0 ? (
+                <div className="max-w-md mx-auto mt-12 text-center flex flex-col items-center gap-4">
+                    <div className="h-16 w-16 bg-lf-s1 rounded-full flex items-center justify-center text-lf-text4 border border-lf-border">
+                        <Target size={32} />
                     </div>
-                ) : (
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                        {campaigns.map(campaign => (
-                            <CampaignCard key={campaign.id} campaign={campaign} />
-                        ))}
+                    <div>
+                        <h3 className="text-lg font-bold mb-1">Nenhuma campanha ativa</h3>
+                        <p className="text-sm text-muted-foreground text-center">
+                            Crie sua primeira campanha de Lead Magnet para começar a capturar leads automaticamente de seus posts.
+                        </p>
                     </div>
-                )}
-            </main>
+                    <Link
+                        href="/campaigns/new"
+                        className="mt-2 h-11 px-6 bg-lf-accent text-white rounded-lg text-sm font-semibold flex items-center gap-2 hover:bg-lf-accent/90 transition-all"
+                    >
+                        Começar agora
+                    </Link>
+                </div>
+            ) : filtered.length === 0 ? (
+                <div className="text-center py-12 text-muted-foreground text-sm">
+                    Nenhuma campanha com o filtro selecionado.
+                </div>
+            ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    {filtered.map(campaign => (
+                        <CampaignCard key={campaign.id} campaign={campaign} />
+                    ))}
+                </div>
+            )}
+        </div>
+    )
+}
+
+function StatsCard({ label, value, icon }: { label: string; value: string | number; icon: React.ReactNode }) {
+    return (
+        <div className="bg-white border border-lf-border rounded-xl p-4 flex items-center gap-3">
+            <div className="h-9 w-9 rounded-lg bg-lf-s1 flex items-center justify-center shrink-0">
+                {icon}
+            </div>
+            <div>
+                <p className="text-xs text-muted-foreground">{label}</p>
+                <p className="text-lg font-bold font-bricolage">{value}</p>
+            </div>
         </div>
     )
 }

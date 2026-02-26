@@ -59,22 +59,15 @@ export default function AnalyticsPage() {
         }
     }
 
-    // Mock data para o gráfico se não houver snapshots reais ainda
-    const chartData = [
-        { date: '01/02', value: 400 },
-        { date: '05/02', value: 300 },
-        { date: '10/02', value: 900 },
-        { date: '15/02', value: 200 },
-        { date: '20/02', value: 500 },
-        { date: '25/02', value: 800 },
-    ]
+    // Usa dados reais dos snapshots, ou array vazio se nenhum dado ainda
+    const chartData = data?.chartData || []
 
     return (
-        <div className="flex-1 space-y-6 p-8 pt-6">
+        <div className="flex-1 space-y-6 p-6 md:p-8 pt-6">
             <div className="flex items-center justify-between space-y-2">
                 <div>
-                    <h2 className="text-3xl font-bold tracking-tight">Analytics Dashboard</h2>
-                    <p className="text-muted-foreground">
+                    <h2 className="text-2xl md:text-3xl font-bold tracking-tight">Analytics Dashboard</h2>
+                    <p className="text-sm text-muted-foreground">
                         Acompanhe seu desempenho no LinkedIn e o progresso das suas campanhas.
                     </p>
                 </div>
