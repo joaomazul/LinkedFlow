@@ -36,6 +36,13 @@
       "when": 1772013789431,
       "tag": "0004_sync_post_migration_0004",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1772118019947,
+      "tag": "0005_brown_tattoo",
+      "breakpoints": true
     }
   ]
 }

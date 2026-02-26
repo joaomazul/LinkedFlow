@@ -39,27 +39,55 @@ export async function GET(req: Request) {
         if (isManualSync) {
             logger.info({ userId, profiles: activeProfiles.length }, 'Sincronização manual solicitada. Buscando posts na Unipile.')
 
-            // 2. Para cada perfil: busca posts na Unipile e faz upsert no banco
-            //    Usa Promise.allSettled para que erro em 1 não pare os outros
-            const fetchResults = await Promise.allSettled(
-                activeProfiles.map(profile => fetchAndCacheProfilePosts(userId, profile))
+            // 2. Filtra perfis que já foram buscados recentemente (últimos 30 min)
+            const thirtyMinAgo = new Date(Date.now() - 30 * 60 * 1000)
+            const profilesToSync = activeProfiles.filter(p =>
+                !p.lastFetchedAt || new Date(p.lastFetchedAt) < thirtyMinAgo
             )
+            const skippedCount = activeProfiles.length - profilesToSync.length
 
-            // Loga erros individuais mas continua
-            fetchResults.forEach((result, idx) => {
-                if (result.status === 'rejected') {
-                    logger.error({
-                        profileId: activeProfiles[idx].id,
-                        profileName: activeProfiles[idx].name,
-                        err: result.reason?.message ?? String(result.reason),
-                    }, 'Falha ao buscar posts do perfil — continuando com os demais')
+            if (skippedCount > 0) {
+                logger.info({ skippedCount }, 'Perfis já sincronizados recentemente — pulando')
+            }
+
+            // 3. Processa em lotes de 5 para respeitar rate limits da Unipile
+            const BATCH_SIZE = 5
+            const INTER_BATCH_DELAY_MS = 1500
+            let syncedCount = 0
+            let failedCount = 0
+
+            for (let i = 0; i < profilesToSync.length; i += BATCH_SIZE) {
+                const batch = profilesToSync.slice(i, i + BATCH_SIZE)
+
+                const results = await Promise.allSettled(
+                    batch.map(profile => fetchAndCacheProfilePosts(userId, profile))
+                )
+
+                results.forEach((result, idx) => {
+                    if (result.status === 'fulfilled') {
+                        syncedCount++
+                    } else {
+                        failedCount++
+                        logger.error({
+                            profileId: batch[idx].id,
+                            profileName: batch[idx].name,
+                            err: result.reason?.message ?? String(result.reason),
+                        }, 'Falha ao buscar posts do perfil — continuando com os demais')
+                    }
+                })
+
+                // Delay entre lotes para não estourar rate limit
+                if (i + BATCH_SIZE < profilesToSync.length) {
+                    await new Promise(resolve => setTimeout(resolve, INTER_BATCH_DELAY_MS))
                 }
-            })
+            }
+
+            logger.info({ syncedCount, failedCount, skippedCount }, 'Sincronização manual concluída')
         } else {
             logger.info({ userId }, 'Buscando posts cacheados do banco.')
         }
 
-        // 3. Retornaposts do banco apenas de perfis ativos
+        // 4. Retorna posts do banco apenas de perfis ativos
         const allPosts = await db
             .select({
                 post: posts,
@@ -73,7 +101,7 @@ export async function GET(req: Request) {
                 eq(monitoredProfiles.active, true)
             ))
             .orderBy(desc(posts.postedAt))
-            .limit(100)
+            .limit(500)
 
         const items = allPosts.map(row => ({
             ...row.post,
@@ -206,7 +234,7 @@ export async function fetchAndCacheProfilePosts(
                 isHidden: false,
             }))
         )
-        .onConflictDoNothing({ target: posts.linkedinPostId })
+        .onConflictDoNothing({ target: [posts.userId, posts.linkedinPostId] })
 
     // Atualiza lastFetchedAt do perfil
     await db

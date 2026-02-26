@@ -24,6 +24,10 @@
         {
             "path": "/api/cron/run-cadence",
             "schedule": "0 7 * * *"
+        },
+        {
+            "path": "/api/cron/sync-feed",
+            "schedule": "0 */2 * * *"
         }
     ],
     "functions": {
@@ -46,6 +50,9 @@
             "maxDuration": 300
         },
         "src/app/api/cron/run-cadence/route.ts": {
+            "maxDuration": 300
+        },
+        "src/app/api/cron/sync-feed/route.ts": {
             "maxDuration": 300
         }
     }

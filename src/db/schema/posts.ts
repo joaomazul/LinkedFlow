@@ -55,7 +55,7 @@ export const posts = pgTable('posts', {
 }, (table) => ({
     userIdIdx: index('posts_user_id_idx').on(table.userId),
     profileIdIdx: index('posts_profile_id_idx').on(table.profileId),
-    linkedinPostIdx: uniqueIndex('posts_linkedin_post_id_idx').on(table.linkedinPostId),
+    linkedinPostIdx: uniqueIndex('posts_linkedin_post_id_idx').on(table.userId, table.linkedinPostId),
     postedAtIdx: index('posts_posted_at_idx').on(table.postedAt),
     statusIdx: index('posts_status_idx').on(table.userId, table.commentStatus),
     // Index composto para a query mais comum: feed de um usuário ordenado por data

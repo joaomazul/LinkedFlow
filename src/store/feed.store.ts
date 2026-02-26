@@ -36,7 +36,7 @@ export const useFeedStore = create<FeedState>()(
         setPosts: (posts) =>
             set((state) => {
                 const unique = Array.from(new Map(posts.map(p => [p.linkedinPostId, p])).values())
-                state.posts = unique.slice(0, 100)
+                state.posts = unique.slice(0, 500)
                 state.lastRefreshedAt = new Date().toISOString()
             }),
 
@@ -44,7 +44,7 @@ export const useFeedStore = create<FeedState>()(
             set((state) => {
                 const combined = [...state.posts, ...posts]
                 const unique = Array.from(new Map(combined.map(p => [p.linkedinPostId, p])).values())
-                state.posts = unique.slice(0, 100)
+                state.posts = unique.slice(0, 500)
             }),
 
         updatePost: (postId, updates) =>

@@ -7,6 +7,7 @@ import { success, apiError } from '@/lib/utils/api-response'
 import { generatePost } from '@/lib/posts/generate-post'
 import { scorePost } from '@/lib/posts/score-post'
 import { fetchArticleContent } from '@/lib/posts/fetch-article'
+import { checkRateLimit } from '@/lib/rate-limiter'
 import { z } from 'zod'
 
 export const dynamic = 'force-dynamic'
@@ -39,6 +40,18 @@ export async function GET(req: Request) {
 export async function POST(req: Request) {
     try {
         const userId = await getAuthenticatedUserId()
+
+        // Rate limit: 20 gerações por minuto por usuário
+        const limit = await checkRateLimit(`ai:post:${userId}`, 20, 60000)
+        if (!limit.success) {
+            const resetInSeconds = Math.ceil((limit.reset - Date.now()) / 1000)
+            return apiError(
+                `Muitas gerações de post. Aguarde ${resetInSeconds}s`,
+                429,
+                'RATE_LIMIT'
+            )
+        }
+
         const body = await req.json()
 
         const parsed = GenerateSchema.safeParse(body)

@@ -25,7 +25,7 @@ export async function GET(req: Request) {
         // 2. Limpa posts do feed muito antigos que não receberam comentários ou salvamento
         const postsResult = await db.delete(posts).where(
             and(
-                eq(posts.commentStatus, 'none'),
+                eq(posts.commentStatus, 'idle'),
                 lt(posts.fetchedAt, thirtyDaysAgo)
             )
         ).returning({ deletedId: posts.id })

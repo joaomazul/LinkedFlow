@@ -4,12 +4,19 @@ import { appSettings } from '@/db/schema'
 import { eq } from 'drizzle-orm'
 import { success, apiError } from '@/lib/utils/api-response'
 import { analyzeBrandVoice } from '@/lib/posts/analyze-brand-voice'
+import { checkRateLimit } from '@/lib/rate-limiter'
 
 export const dynamic = 'force-dynamic'
 
 export async function POST(req: Request) {
     try {
         const userId = await getAuthenticatedUserId()
+
+        // Rate limit: 5 análises por minuto (opeação pesada)
+        const limit = await checkRateLimit(`ai:voice:${userId}`, 5, 60000)
+        if (!limit.success) {
+            return apiError('Muitas análises solicitadas. Aguarde um minuto.', 429, 'RATE_LIMIT')
+        }
 
         // Busca configurações para pegar o accountId e profileId (o "me")
         const [settings] = await db.select().from(appSettings).where(eq(appSettings.userId, userId)).limit(1)
