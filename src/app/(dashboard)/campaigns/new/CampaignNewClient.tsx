@@ -100,21 +100,18 @@ export default function NewCampaignPage() {
 
     return (
         <div className="flex flex-col h-full bg-lf-s2">
-            <header className="h-[70px] border-b border-lf-border bg-white px-8 flex items-center justify-between shrink-0">
-                <div>
-                    <h1 className="lf-title text-xl">Nova Campanha</h1>
-                    <p className="lf-caption text-lf-text3">Configure seu motor de lead magnet</p>
-                </div>
-
-                <button
-                    onClick={() => router.back()}
-                    className="lf-caption text-lf-text3 hover:text-lf-text2"
-                >
-                    Cancelar
-                </button>
-            </header>
-
             <main className="flex-1 overflow-y-auto p-8 flex flex-col items-center">
+                <div className="w-full max-w-2xl mb-6">
+                    <button onClick={() => router.push('/campaigns')} className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground mb-4 transition-colors">
+                        <ChevronLeft size={16} /> Voltar para Campanhas
+                    </button>
+                    <div className="flex items-center justify-between">
+                        <div>
+                            <h1 className="text-2xl font-bold">Nova Campanha</h1>
+                            <p className="text-sm text-muted-foreground mt-1">Configure seu motor de lead magnet</p>
+                        </div>
+                    </div>
+                </div>
                 <div className="w-full max-w-2xl bg-white rounded-2xl border border-lf-border shadow-sm overflow-hidden mb-12">
                     {/* Stepper Header */}
                     <div className="flex border-b border-lf-border">

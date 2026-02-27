@@ -6,8 +6,9 @@ import {
     postPerformance,
     campaigns as campaignsTable
 } from '@/db/schema'
-import { and, eq, gte, lte, sql, count, avg } from 'drizzle-orm'
+import { and, eq, gte, lte, sql, count, avg, asc } from 'drizzle-orm'
 import { PeriodMetrics } from './types'
+import { format } from 'date-fns'
 
 export async function computeMetricsForPeriod(
     userId: string,
@@ -100,6 +101,74 @@ export async function computeMetricsForPeriod(
             lte(postPerformance.publishedAt, endDate)
         )).orderBy(sql`interactionCount desc`).limit(1)
 
+    // 8. Time-series para o Gráfico (chartData)
+    // Agrupa (likes + comments) por dia usando post_performance
+    const dailyPerf = await db.select({
+        date: sql<string>`to_char(date_trunc('day', ${postPerformance.publishedAt}), 'MM/DD')`,
+        value: sql<number>`(sum(${postPerformance.likes}) + sum(${postPerformance.comments}))::int`
+    }).from(postPerformance)
+        .where(and(
+            eq(postPerformance.userId, userId),
+            gte(postPerformance.publishedAt, startDate),
+            lte(postPerformance.publishedAt, endDate)
+        ))
+        .groupBy(sql`date_trunc('day', ${postPerformance.publishedAt})`)
+        .orderBy(sql`date_trunc('day', ${postPerformance.publishedAt})`)
+
+    // Se não houver dados diários suficientes, preenche vazio? Vamos retornar o que tem, o frontend lida.
+    const chartData = dailyPerf.map(d => ({ date: d.date, value: d.value || 0 }))
+
+    // 9. Heatmap (best times)
+    const hourlyPerf = await db.select({
+        dayRaw: sql<number>`extract(dow from ${postPerformance.publishedAt})::int`,
+        hourRaw: sql<number>`extract(hour from ${postPerformance.publishedAt})::int`,
+        engagement: sql<number>`(sum(${postPerformance.likes}) + sum(${postPerformance.comments}))::int`
+    }).from(postPerformance)
+        .where(and(
+            eq(postPerformance.userId, userId),
+            gte(postPerformance.publishedAt, startDate),
+            lte(postPerformance.publishedAt, endDate)
+        ))
+        .groupBy(sql`extract(dow from ${postPerformance.publishedAt}), extract(hour from ${postPerformance.publishedAt})`)
+
+    const heatmapData = hourlyPerf.map(h => ({
+        day: h.dayRaw,
+        hour: h.hourRaw,
+        engagement: h.engagement || 0
+    }))
+
+    // 10. Format Breakdown (Pie Chart)
+    const formatAgg = await db.select({
+        format: postPerformance.format,
+        count: sql<number>`count(*)::int`,
+        totalInteractions: sql<number>`(sum(${postPerformance.likes}) + sum(${postPerformance.comments}))::int`
+    }).from(postPerformance)
+        .where(and(
+            eq(postPerformance.userId, userId),
+            gte(postPerformance.publishedAt, startDate),
+            lte(postPerformance.publishedAt, endDate)
+        ))
+        .groupBy(postPerformance.format)
+
+    const totalPostsFormats = formatAgg.reduce((acc, curr) => acc + (curr.count || 0), 0)
+    const formatBreakdown = formatAgg.map(f => ({
+        format: f.format || 'outros',
+        count: f.count || 0,
+        percentage: totalPostsFormats > 0 ? Math.round(((f.count || 0) / totalPostsFormats) * 100) : 0
+    }))
+
+    // 11. Score Accuracy
+    const scoreAcc = await db.select({
+        avgAccuracy: avg(postPerformance.scoreAccuracy)
+    }).from(postPerformance)
+        .where(and(
+            eq(postPerformance.userId, userId),
+            gte(postPerformance.publishedAt, startDate),
+            lte(postPerformance.publishedAt, endDate)
+        ))
+
+    const avgScoreAcc = scoreAcc[0]?.avgAccuracy ? Number(scoreAcc[0].avgAccuracy) : null
+
     const conversionRate = leadsCaptured > 0 ? (leadsCompleted / leadsCaptured * 100) : 0
 
     return {
@@ -123,6 +192,10 @@ export async function computeMetricsForPeriod(
         totalComments: perf.comments || 0,
         totalShares: perf.shares || 0,
         avgEngagementRate: perf.avgEngagement ? Number(perf.avgEngagement) : null,
+        chartData,
+        heatmapData,
+        formatBreakdown,
+        scoreAccuracy: avgScoreAcc,
         trend: { posts: 0, leads: 0, engagement: 0 }
     }
 }

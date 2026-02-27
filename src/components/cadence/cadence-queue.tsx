@@ -8,7 +8,8 @@ import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Textarea } from '@/components/ui/textarea'
 import { toast } from 'sonner'
-import { Check, Clipboard, Send, X } from 'lucide-react'
+import { Check, Clipboard, Send, X, Clock } from 'lucide-react'
+import { cn } from '@/lib/utils'
 
 export function CadenceQueue({ initialSuggestions }: { initialSuggestions: any[] }) {
     const [suggestions, setSuggestions] = useState(initialSuggestions)
@@ -70,8 +71,11 @@ export function CadenceQueue({ initialSuggestions }: { initialSuggestions: any[]
         <div className="space-y-6">
             {suggestions.map((sug) => {
                 const { suggestion, personName, personAvatar, personHeadline } = sug
+                const isPending = suggestion.status === 'pending'
+                const urgency = suggestion.urgencyScore || 50
+
                 return (
-                    <Card key={suggestion.id} className="overflow-hidden border-l-4 border-l-primary">
+                    <Card key={suggestion.id} className={cn("overflow-hidden border-l-4 transition-all", isPending ? "border-l-primary" : "border-l-muted")}>
                         <CardHeader className="p-4 pb-0">
                             <div className="flex justify-between items-start">
                                 <div className="flex gap-3">
@@ -84,16 +88,34 @@ export function CadenceQueue({ initialSuggestions }: { initialSuggestions: any[]
                                         <p className="text-xs text-muted-foreground">{personHeadline}</p>
                                     </div>
                                 </div>
-                                <div className="flex gap-1">
-                                    <Button
-                                        size="icon"
-                                        variant="ghost"
-                                        className="h-8 w-8 text-muted-foreground"
-                                        onClick={() => handleDismiss(suggestion.id)}
-                                        disabled={loading === suggestion.id}
-                                    >
-                                        <X className="h-4 w-4" />
-                                    </Button>
+                                <div className="flex gap-2 items-center">
+                                    {isPending && (
+                                        <div className="hidden sm:block">
+                                            {urgency > 70 ? (
+                                                <Badge variant="outline" className="bg-red-50 text-red-600 border-red-200 text-[10px] uppercase shadow-sm">🔴 Alta Prioridade</Badge>
+                                            ) : urgency > 40 ? (
+                                                <Badge variant="outline" className="bg-amber-50 text-amber-600 border-amber-200 text-[10px] uppercase shadow-sm">🟡 Média</Badge>
+                                            ) : (
+                                                <Badge variant="outline" className="bg-slate-50 text-slate-500 border-slate-200 text-[10px] uppercase shadow-sm">🟢 Baixa</Badge>
+                                            )}
+                                        </div>
+                                    )}
+                                    {isPending ? (
+                                        <Button
+                                            size="icon"
+                                            variant="ghost"
+                                            className="h-8 w-8 text-muted-foreground hover:bg-red-50 hover:text-red-500"
+                                            onClick={() => handleDismiss(suggestion.id)}
+                                            disabled={loading === suggestion.id}
+                                        >
+                                            <X className="h-4 w-4" />
+                                        </Button>
+                                    ) : (
+                                        <div className="text-[10px] text-muted-foreground flex items-center gap-1 font-medium bg-muted/50 px-2 py-1 rounded-md">
+                                            <Clock size={12} />
+                                            {new Date(suggestion.updatedAt || suggestion.createdAt).toLocaleDateString()}
+                                        </div>
+                                    )}
                                 </div>
                             </div>
                         </CardHeader>
@@ -105,43 +127,54 @@ export function CadenceQueue({ initialSuggestions }: { initialSuggestions: any[]
                                 </div>
                                 <p className="text-sm font-medium mb-2">{suggestion.reason}</p>
 
-                                <Textarea
-                                    id={`content-${suggestion.id}`}
-                                    defaultValue={suggestion.suggestedContent}
-                                    className="text-sm min-h-[100px] bg-background mt-4"
-                                />
+                                {isPending ? (
+                                    <>
+                                        <Textarea
+                                            id={`content-${suggestion.id}`}
+                                            defaultValue={suggestion.suggestedContent}
+                                            className="text-sm min-h-[100px] bg-background mt-4 focus:border-primary/50"
+                                        />
 
-                                <div className="flex justify-end gap-2 mt-4">
-                                    <Button
-                                        size="sm"
-                                        variant="ghost"
-                                        className="gap-2"
-                                        onClick={() => handleExecute(sug, 'manual')}
-                                        disabled={loading === suggestion.id}
-                                    >
-                                        Log Only
-                                    </Button>
-                                    <Button
-                                        size="sm"
-                                        variant="ghost"
-                                        className="gap-2"
-                                        onClick={() => {
-                                            const val = (document.getElementById(`content-${suggestion.id}`) as HTMLTextAreaElement)?.value || suggestion.suggestedContent
-                                            navigator.clipboard.writeText(val)
-                                            toast.success('Copiado!')
-                                        }}
-                                    >
-                                        <Clipboard className="h-3.5 w-3.5" /> Copiar
-                                    </Button>
-                                    <Button
-                                        size="sm"
-                                        className="gap-2 bg-primary"
-                                        onClick={() => handleExecute(sug, 'execute')}
-                                        disabled={loading === suggestion.id}
-                                    >
-                                        <Send className="h-3.5 w-3.5" /> {loading === suggestion.id ? 'Enviando...' : 'Enviar no LinkedIn'}
-                                    </Button>
-                                </div>
+                                        <div className="flex justify-end gap-2 mt-4">
+                                            <Button
+                                                size="sm"
+                                                variant="outline"
+                                                className="gap-2 text-xs"
+                                                onClick={() => handleExecute(sug, 'manual')}
+                                                disabled={loading === suggestion.id}
+                                            >
+                                                Registrar Apenas
+                                            </Button>
+                                            <Button
+                                                size="sm"
+                                                variant="outline"
+                                                className="gap-2 text-xs"
+                                                onClick={() => {
+                                                    const val = (document.getElementById(`content-${suggestion.id}`) as HTMLTextAreaElement)?.value || suggestion.suggestedContent
+                                                    navigator.clipboard.writeText(val)
+                                                    toast.success('Copiado!')
+                                                }}
+                                            >
+                                                <Clipboard className="h-3.5 w-3.5" /> Copiar
+                                            </Button>
+                                            <Button
+                                                size="sm"
+                                                className="gap-2 text-xs font-semibold shadow-sm active:scale-95 transition-all"
+                                                onClick={() => handleExecute(sug, 'execute')}
+                                                disabled={loading === suggestion.id}
+                                            >
+                                                <Send className="h-3.5 w-3.5" /> {loading === suggestion.id ? 'Executando...' : 'Executar & LinkedIn'}
+                                            </Button>
+                                        </div>
+                                    </>
+                                ) : (
+                                    <div className="mt-4 opacity-70">
+                                        <p className="text-xs text-muted-foreground mb-1 font-semibold">{suggestion.status === 'done' ? 'Executado:' : 'Ignorado:'}</p>
+                                        <div className="text-sm p-3 bg-background border rounded-md whitespace-pre-wrap">
+                                            {suggestion.suggestedContent}
+                                        </div>
+                                    </div>
+                                )}
                             </div>
                         </CardContent>
                     </Card>

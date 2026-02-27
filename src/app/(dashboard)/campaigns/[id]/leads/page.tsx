@@ -107,28 +107,21 @@ export default function LeadsQueuePage() {
 
     return (
         <div className="flex flex-col h-full bg-lf-s2">
-            <header className="h-[70px] border-b border-lf-border bg-white px-8 flex items-center justify-between shrink-0">
-                <div className="flex items-center gap-4">
-                    <button
-                        onClick={() => router.push('/campaigns')}
-                        className="h-8 w-8 rounded-lg flex items-center justify-center text-lf-text4 hover:bg-lf-s1 hover:text-lf-text2 transition-all"
-                    >
-                        <ChevronLeft size={20} />
-                    </button>
-                    <div>
-                        <h1 className="lf-title text-xl leading-tight">Fila de Aprovação</h1>
-                        <p className="lf-caption text-lf-text3">Leads pendentes aguardando sua revisão</p>
-                    </div>
-                </div>
-
-                <div className="flex items-center gap-3">
-                    <div className="px-3 py-1 bg-lf-accent/10 rounded-full lf-caption text-xs font-bold text-lf-accent">
-                        {leads.length} pendentes
-                    </div>
-                </div>
-            </header>
-
             <main className="flex-1 overflow-y-auto p-8 flex flex-col items-center">
+                <div className="w-full max-w-4xl mb-6">
+                    <button onClick={() => router.push('/campaigns')} className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground mb-4 transition-colors">
+                        <ChevronLeft size={16} /> Voltar para Campanhas
+                    </button>
+                    <div className="flex border-b border-lf-border pb-6 items-center justify-between">
+                        <div>
+                            <h1 className="text-2xl font-bold">Fila de Aprovação</h1>
+                            <p className="text-sm text-muted-foreground mt-1">Leads pendentes aguardando sua revisão</p>
+                        </div>
+                        <div className="px-3 py-1 bg-lf-accent/10 rounded-full text-xs font-bold text-lf-accent">
+                            {leads.length} pendentes
+                        </div>
+                    </div>
+                </div>
                 {loading ? (
                     <div className="py-20 flex flex-col items-center gap-4">
                         <Loader2 className="animate-spin text-lf-accent" size={32} />

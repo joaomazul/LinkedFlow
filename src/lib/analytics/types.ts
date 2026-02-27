@@ -25,6 +25,12 @@ export interface PeriodMetrics {
     totalShares: number
     avgEngagementRate: number | null
 
+    // Taplio-inspired Additions
+    chartData: { date: string; value: number }[]
+    heatmapData: { day: number; hour: number; engagement: number }[]
+    formatBreakdown: { format: string; percentage: number; count: number }[]
+    scoreAccuracy: number | null
+
     // Tendência (vs período anterior)
     trend: {
         posts: number // % de variação

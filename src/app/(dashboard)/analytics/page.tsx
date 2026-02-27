@@ -6,6 +6,7 @@ import { PerformanceChart } from '@/components/analytics/PerformanceChart'
 import { InsightsFeed } from '@/components/analytics/InsightsFeed'
 import { TopPosts } from '@/components/analytics/TopPosts'
 import { BestTimesHeatmap } from '@/components/analytics/BestTimesHeatmap'
+import { FormatBreakdown } from '@/components/analytics/FormatBreakdown'
 import {
     Select,
     SelectContent,
@@ -58,9 +59,10 @@ export default function AnalyticsPage() {
             console.error('Erro ao marcar insight como lido')
         }
     }
-
-    // Usa dados reais dos snapshots, ou array vazio se nenhum dado ainda
-    const chartData = data?.chartData || []
+    // Usa dados reais dos snapshots e do postPerformance (calculados no server via API)
+    const chartData = data?.metrics?.chartData || []
+    const heatmapData = data?.metrics?.heatmapData || []
+    const formatBreakdown = data?.metrics?.formatBreakdown || []
 
     return (
         <div className="flex-1 space-y-6 p-6 md:p-8 pt-6">
@@ -94,21 +96,24 @@ export default function AnalyticsPage() {
                     dataKey="value"
                     color="#0ea5e9"
                 />
-                <div className="col-span-1 lg:col-span-3">
+                <div className="lg:col-span-2">
+                    <FormatBreakdown data={formatBreakdown} />
+                </div>
+                <div className="lg:col-span-3">
+                    <BestTimesHeatmap data={heatmapData} />
+                </div>
+            </div>
+
+            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-7">
+                <div className="lg:col-span-4">
+                    <TopPosts posts={data?.topPosts || []} />
+                </div>
+                <div className="lg:col-span-3">
                     <InsightsFeed
                         insights={data?.recentInsights || []}
                         onMarkAsRead={handleMarkAsRead}
                         isLoading={isLoading}
                     />
-                </div>
-            </div>
-
-            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-7">
-                <div className="col-span-1 lg:col-span-4">
-                    <BestTimesHeatmap data={[]} />
-                </div>
-                <div className="col-span-1 lg:col-span-3">
-                    <TopPosts posts={data?.topPosts || []} />
                 </div>
             </div>
         </div>

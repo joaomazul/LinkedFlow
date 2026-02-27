@@ -33,3 +33,27 @@ export async function GET(req: NextRequest) {
         return createApiResponse.error(error.message)
     }
 }
+
+export async function POST(req: NextRequest) {
+    try {
+        const userId = await getAuthenticatedUserId()
+        if (!userId) return createApiResponse.unauthorized()
+
+        const { personId, reason, suggestedContent } = await req.json()
+
+        const [newSuggestion] = await db.insert(cadenceSuggestions).values({
+            userId,
+            personId,
+            type: 'manual_signal',
+            reason: reason || 'Sinal ABM detectado exigindo ação.',
+            suggestedContent: suggestedContent || 'Olá! Vi sua atualização recente e achei super interessante. Como estão as coisas?',
+            status: 'pending',
+            urgencyScore: 80
+        }).returning()
+
+        return createApiResponse.success(newSuggestion)
+
+    } catch (error: any) {
+        return createApiResponse.error(error.message)
+    }
+}

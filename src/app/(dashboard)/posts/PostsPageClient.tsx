@@ -100,9 +100,11 @@ function PostsGrid({ posts, loading }: { posts: any[], loading: boolean }) {
         )
     }
 
+    const sortedPosts = [...posts].sort((a, b) => (b.scoreOverall || 0) - (a.scoreOverall || 0))
+
     return (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {posts.map((post) => (
+            {sortedPosts.map((post) => (
                 <PostCard key={post.id} post={post} />
             ))}
         </div>
@@ -128,8 +130,10 @@ function PostCard({ post }: { post: any }) {
                     {post.body}
                 </p>
 
-                <div className="text-[10px] text-muted-foreground flex items-center gap-2">
-                    <span>Criado em {format(new Date(post.createdAt), "dd 'de' MMM", { locale: ptBR })}</span>
+                <div className="text-[10px] text-muted-foreground flex items-center gap-2 flex-wrap">
+                    <span>{format(new Date(post.createdAt), "dd MMM", { locale: ptBR })}</span>
+                    <span>•</span>
+                    <span>{post.body?.length || 0} chars</span>
                     {post.status === 'published' && (
                         <Badge variant="secondary" className="h-4 text-[9px] bg-emerald-100 text-emerald-700 border-emerald-200">Publicado</Badge>
                     )}

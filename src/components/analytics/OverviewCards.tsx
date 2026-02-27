@@ -42,13 +42,12 @@ function MetricCard({ title, value, trend, icon, isLoading }: MetricCardProps) {
 
 interface OverviewCardsProps {
     data?: {
-        postsPublished: number
+        scoreAccuracy: number | null
         leadsCaptured: number
         totalLikes: number
         totalComments: number
         conversionRate: number
         trend: {
-            posts: number
             leads: number
             engagement: number
         }
@@ -60,10 +59,9 @@ export function OverviewCards({ data, isLoading }: OverviewCardsProps) {
     return (
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
             <MetricCard
-                title="Posts Publicados"
-                value={data?.postsPublished ?? 0}
-                trend={data?.trend.posts}
-                icon={<FileTextIcon className="w-4 h-4" />}
+                title="Score da IA vs Real"
+                value={data?.scoreAccuracy !== null && data?.scoreAccuracy !== undefined ? `${data.scoreAccuracy}%` : 'N/A'}
+                icon={<TargetIcon className="w-4 h-4" />}
                 isLoading={isLoading}
             />
             <MetricCard

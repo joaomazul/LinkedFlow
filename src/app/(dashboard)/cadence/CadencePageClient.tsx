@@ -30,12 +30,17 @@ export default function CadencePageClient({ initialSuggestions, stats }: Cadence
     return (
         <div className="flex flex-col gap-6 p-6 md:p-8 max-w-4xl mx-auto">
             {/* Header */}
-            <div>
-                <h1 className="text-2xl md:text-3xl font-bold tracking-tight flex items-center gap-2">
-                    <ListChecks className="h-7 w-7 text-primary" />
-                    Cadência Inteligente
-                </h1>
-                <p className="text-sm text-muted-foreground mt-1">Próximos passos sugeridos pela IA para seus contatos.</p>
+            <div className="flex justify-between items-start">
+                <div>
+                    <h1 className="text-2xl md:text-3xl font-bold tracking-tight flex items-center gap-2">
+                        <ListChecks className="h-7 w-7 text-primary" />
+                        Cadência Inteligente
+                    </h1>
+                    <p className="text-sm text-muted-foreground mt-1">Próximos passos sugeridos pela IA para seus contatos.</p>
+                </div>
+                <Link href="/settings" className="p-2 border rounded-md hover:bg-muted text-muted-foreground transition-colors" title="Configurações">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+                </Link>
             </div>
 
             {/* Stats Bar */}

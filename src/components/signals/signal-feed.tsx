@@ -8,10 +8,35 @@ import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { formatDistanceToNow } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
-import { Bell, ExternalLink, Sparkles, TrendingUp } from 'lucide-react'
+import { Bell, ExternalLink, Sparkles, TrendingUp, Loader2 } from 'lucide-react'
+import { toast } from 'sonner'
+import { useRouter } from 'next/navigation'
 
 export function SignalFeed({ initialSignals }: { initialSignals: any[] }) {
     const [signals] = useState(initialSignals)
+    const [loading, setLoading] = useState<string | null>(null)
+    const router = useRouter()
+
+    const handleActNow = async (signal: any, personId: string) => {
+        setLoading(signal.id)
+        try {
+            const res = await fetch('/api/cadence/queue', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    personId,
+                    reason: `Sinal "${signal.title}" (${signal.type}) detectado. IA: Aproveite o gatilho para puxar assunto.`,
+                })
+            })
+            if (!res.ok) throw new Error()
+            toast.success('Cadência criada!', { description: 'Sinal convertido em ação na sua fila de cadência.' })
+            router.push('/cadence')
+        } catch (e) {
+            toast.error('Erro ao criar cadência. Tente novamente.')
+        } finally {
+            setLoading(null)
+        }
+    }
 
     if (signals.length === 0) {
         return (
@@ -61,8 +86,15 @@ export function SignalFeed({ initialSignals }: { initialSignals: any[] }) {
                                 </div>
 
                                 <div className="mt-4 flex gap-2">
-                                    <Button size="sm" variant="outline" className="h-8 gap-2">
-                                        <Sparkles className="h-3.5 w-3.5" /> Agir agora
+                                    <Button
+                                        size="sm"
+                                        variant="outline"
+                                        className="h-8 gap-2"
+                                        onClick={() => handleActNow(signal, signal.personId)}
+                                        disabled={loading === signal.id}
+                                    >
+                                        {loading === signal.id ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Sparkles className="h-3.5 w-3.5" />}
+                                        Agir agora
                                     </Button>
                                     {signal.url && (
                                         <Button size="sm" variant="ghost" className="h-8 text-xs gap-1" asChild>

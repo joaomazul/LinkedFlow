@@ -83,31 +83,26 @@ export default function CampaignResultsPage() {
 
     return (
         <div className="flex flex-col h-full bg-lf-s2">
-            <header className="h-[70px] border-b border-lf-border bg-white px-8 flex items-center justify-between shrink-0">
-                <div className="flex items-center gap-4">
-                    <button
-                        onClick={() => router.push('/campaigns')}
-                        className="h-8 w-8 rounded-lg flex items-center justify-center text-lf-text4 hover:bg-lf-s1 transition-all"
-                    >
-                        <ChevronLeft size={20} />
-                    </button>
-                    <div>
-                        <h1 className="lf-title text-xl">{campaign.name}</h1>
-                        <p className="lf-caption text-lf-text3">Dashboard de Resultados e Performance</p>
-                    </div>
-                </div>
-
-                <a
-                    href={campaign.postUrl}
-                    target="_blank"
-                    className="h-10 px-4 border border-lf-border rounded-lg lf-caption text-xs font-bold flex items-center gap-2 hover:bg-lf-s1 transition-all"
-                >
-                    Ver Post Original <ExternalLink size={14} />
-                </a>
-            </header>
-
             <main className="flex-1 overflow-y-auto p-8">
                 <div className="max-w-5xl mx-auto space-y-8">
+                    <div className="w-full mb-2">
+                        <button onClick={() => router.push('/campaigns')} className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground mb-4 transition-colors">
+                            <ChevronLeft size={16} /> Voltar para Campanhas
+                        </button>
+                        <div className="flex items-center justify-between border-b border-lf-border pb-6">
+                            <div>
+                                <h1 className="text-2xl font-bold">{campaign.name}</h1>
+                                <p className="text-sm text-muted-foreground mt-1">Dashboard de Resultados e Performance</p>
+                            </div>
+                            <a
+                                href={campaign.postUrl}
+                                target="_blank"
+                                className="h-10 px-4 border border-lf-border rounded-lg text-xs font-bold flex items-center gap-2 hover:bg-white transition-all bg-lf-s1"
+                            >
+                                Ver Post Original <ExternalLink size={14} />
+                            </a>
+                        </div>
+                    </div>
                     {/* Stats Grid */}
                     <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
                         <StatCard icon={<Users size={20} />} label="Leads Capturados" value={campaign.totalCaptured} color="text-lf-text2" />
