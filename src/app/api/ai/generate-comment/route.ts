@@ -139,7 +139,7 @@ Responda APENAS com JSON válido, sem markdown, sem explicações:
             headers: {
                 'Authorization': `Bearer ${process.env.OPENROUTER_API_KEY}`,
                 'Content-Type': 'application/json',
-                'HTTP-Referer': process.env.NEXT_PUBLIC_APP_URL || process.env.URL || 'https://linkedflow.app',
+                'HTTP-Referer': process.env.NEXT_PUBLIC_APP_URL || process.env.URL || 'https://cowb.app',
                 'X-Title': 'LinkedFlow',
             },
             body: JSON.stringify({
