@@ -46,9 +46,11 @@ export function Topbar({ title, children, onMenuClick }: TopbarProps) {
                     </span>
                 </div>
 
-                {/* Refresh button */}
-                <button className="h-8 w-8 rounded-[10px] bg-page text-ink-3 flex items-center justify-center hover:bg-ink hover:text-white transition-all duration-[var(--t-base)] group">
+                {/* Refresh button with auto-refresh indicator */}
+                <button className="relative h-8 w-8 rounded-[10px] bg-page text-ink-3 flex items-center justify-center hover:bg-ink hover:text-white transition-all duration-[var(--t-base)] group">
                     <RefreshCw size={14} className="group-hover:rotate-180 transition-transform duration-500" />
+                    {/* Green dot: auto-refresh is active */}
+                    <span className="absolute -top-0.5 -right-0.5 h-2 w-2 rounded-full bg-success-text animate-pulse" />
                 </button>
             </div>
         </header>

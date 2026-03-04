@@ -4,6 +4,7 @@ import React from 'react'
 import { Sidebar } from './Sidebar'
 import { Topbar } from './Topbar'
 import { RightPanel } from './RightPanel'
+import { LeftPanel } from './LeftPanel'
 import { usePathname } from 'next/navigation'
 import { AccountStatusBanner } from '@/components/unipile/AccountStatusBanner'
 import { motion, AnimatePresence } from 'framer-motion'
@@ -112,6 +113,13 @@ export function AppShell({ children, title, showRightPanel = false }: AppShellPr
             )}>
                 <Sidebar />
             </div>
+
+            {/* Left Panel - Profile management (Feed only) */}
+            {isFeed && (
+                <div className="hidden lg:block h-full shrink-0">
+                    <LeftPanel />
+                </div>
+            )}
 
             <div className="flex flex-1 flex-col overflow-hidden relative">
                 <Topbar
