@@ -5,11 +5,10 @@ import { env } from '@/env'
 export const dynamic = 'force-dynamic'
 export const runtime = 'nodejs'
 
-export async function POST(req: Request) {
+export async function GET(req: Request) {
     const authHeader = req.headers.get('Authorization')
-    const secret = process.env.CRON_SECRET || env.CRON_SECRET
 
-    if (authHeader !== `Bearer ${secret}`) {
+    if (authHeader !== `Bearer ${env.CRON_SECRET}`) {
         return apiError('Não autorizado', 401)
     }
 
@@ -18,12 +17,10 @@ export async function POST(req: Request) {
     }
 
     try {
-        // Roda em background sem dar await para não timeout no Vercel Cron (que tem limite de 10-60s)
-        // Se o volume for alto, o ideal seria usar um Queue system, mas para o MVP rodamos assim.
-        runCampaignPoller().catch(err => console.error('[Cron Poll Error]:', err))
-
-        return success({ status: 'Campaign poller started' })
+        await runCampaignPoller()
+        return success({ status: 'Campaign poller completed' })
     } catch (err: any) {
-        return apiError('Falha ao iniciar poller', 500)
+        console.error('[Cron Poll Error]:', err)
+        return apiError('Falha ao executar poller', 500)
     }
 }

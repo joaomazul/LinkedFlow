@@ -130,7 +130,8 @@ Responda APENAS com JSON válido, sem markdown, sem explicações:
 }`
 
     const controller = new AbortController()
-    const timeout = setTimeout(() => controller.abort(), 25000)
+    const timeoutMs = Number(process.env.AI_REQUEST_TIMEOUT_MS ?? 25000)
+    const timeout = setTimeout(() => controller.abort(), timeoutMs)
 
     try {
         const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
@@ -138,7 +139,7 @@ Responda APENAS com JSON válido, sem markdown, sem explicações:
             headers: {
                 'Authorization': `Bearer ${process.env.OPENROUTER_API_KEY}`,
                 'Content-Type': 'application/json',
-                'HTTP-Referer': process.env.NEXT_PUBLIC_APP_URL ?? 'http://localhost:3000',
+                'HTTP-Referer': process.env.NEXT_PUBLIC_APP_URL || process.env.URL || 'https://linkedflow.app',
                 'X-Title': 'LinkedFlow',
             },
             body: JSON.stringify({
@@ -179,7 +180,7 @@ Responda APENAS com JSON válido, sem markdown, sem explicações:
 
     } catch (err) {
         if ((err as Error).name === 'AbortError') {
-            throw new Error('Timeout na geração (25s). Tente novamente.')
+            throw new Error(`Timeout na geração (${Math.round(timeoutMs / 1000)}s). Tente novamente.`)
         }
         if (err instanceof SyntaxError) {
             throw new Error('Resposta da IA em formato inválido. Tente novamente.')

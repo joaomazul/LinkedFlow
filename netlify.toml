@@ -7,9 +7,19 @@
   NEXT_USE_NETLIFY_EDGE = "false"
   NPM_FLAGS = "--include=dev"
 
+[functions]
+  directory = "netlify/functions"
+
 [[plugins]]
   package = "@netlify/plugin-nextjs"
 
-# Observação: Netlify não suporta o campo "crons" do vercel.json.
-# As rotas /api/cron/* devem ser chamadas por um disparador externo
-# ou convertidas em Netlify Scheduled Functions.
+# Scheduled Functions (replacem os crons do vercel.json):
+# - cron-sync-feed:          a cada 2h
+# - cron-campaign-poll:      a cada 30min
+# - cron-campaign-execute:   a cada 15min
+# - cron-run-cadence:        diário 7h
+# - cron-sync-analytics:     diário 2h
+# - cron-cleanup:            domingo 3h
+# - cron-refresh-brand-voice: domingo 4h
+#
+# IMPORTANTE: Configure CRON_SECRET no painel do Netlify (Environment Variables)

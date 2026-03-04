@@ -1,31 +1,65 @@
-const rateLimits = new Map<string, { count: number; expiresAt: number }>()
+import { neon } from '@neondatabase/serverless'
 
-// Cleanup periodico das chaves expiradas a cada minuto
-setInterval(() => {
-    const now = Date.now()
-    for (const [key, record] of rateLimits.entries()) {
-        if (record.expiresAt < now) rateLimits.delete(key)
+// DB-backed rate limiter using Neon SQL (works across serverless instances)
+// Auto-creates the rate_limits table on first use
+
+let _sql: ReturnType<typeof neon> | null = null
+let _tableReady = false
+
+function getSql() {
+    if (!_sql) {
+        _sql = neon(process.env.DATABASE_URL!)
     }
-}, 60000)
+    return _sql
+}
 
+async function ensureTable() {
+    if (_tableReady) return
+    const sql = getSql()
+    await sql`
+        CREATE TABLE IF NOT EXISTS rate_limits (
+            key TEXT PRIMARY KEY,
+            count INTEGER NOT NULL DEFAULT 1,
+            expires_at BIGINT NOT NULL
+        )
+    `
+    _tableReady = true
+}
 
 export async function checkRateLimit(
     key: string,
     limit: number,
     windowMs: number
 ): Promise<{ success: boolean; limit: number; remaining: number; reset: number }> {
+    await ensureTable()
+    const sql = getSql()
+
     const now = Date.now()
-    const record = rateLimits.get(key)
+    const expiresAt = now + windowMs
 
-    if (!record || record.expiresAt < now) {
-        rateLimits.set(key, { count: 1, expiresAt: now + windowMs })
-        return { success: true, limit, remaining: limit - 1, reset: now + windowMs }
+    // Atomic upsert: insert new record or increment existing (reset if expired)
+    const result = await sql`
+        INSERT INTO rate_limits (key, count, expires_at)
+        VALUES (${key}, 1, ${expiresAt})
+        ON CONFLICT (key) DO UPDATE SET
+            count = CASE
+                WHEN rate_limits.expires_at < ${now} THEN 1
+                ELSE rate_limits.count + 1
+            END,
+            expires_at = CASE
+                WHEN rate_limits.expires_at < ${now} THEN ${expiresAt}
+                ELSE rate_limits.expires_at
+            END
+        RETURNING count, expires_at
+    ` as Record<string, unknown>[]
+
+    const currentCount = Number(result[0].count)
+    const resetAt = Number(result[0].expires_at)
+
+    return {
+        success: currentCount <= limit,
+        limit,
+        remaining: Math.max(0, limit - currentCount),
+        reset: resetAt,
     }
-
-    if (record.count >= limit) {
-        return { success: false, limit, remaining: 0, reset: record.expiresAt }
-    }
-
-    record.count += 1
-    return { success: true, limit, remaining: limit - record.count, reset: record.expiresAt }
 }

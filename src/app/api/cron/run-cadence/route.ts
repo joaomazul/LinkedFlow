@@ -1,12 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { runCadenceWorker } from '@/lib/workers/cadence-worker'
+import { env } from '@/env'
 
 export const dynamic = 'force-dynamic'
 export const runtime = 'nodejs'
 
 export async function GET(req: NextRequest) {
-    const authHeader = req.headers.get('authorization')
-    if (authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
+    const authHeader = req.headers.get('Authorization')
+    if (authHeader !== `Bearer ${env.CRON_SECRET}`) {
         return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 

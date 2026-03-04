@@ -17,7 +17,7 @@ const schema = z.object({
     LINKEDIN_MIN_COMMENT_DELAY_SECONDS: z.coerce.number().default(30),
     RATE_LIMIT_AI_REQUESTS_PER_MINUTE: z.coerce.number().default(20),
     RATE_LIMIT_WINDOW_MS: z.coerce.number().default(60000),
-    CRON_SECRET: z.string().default('not-set'),
+    CRON_SECRET: z.string().min(1),
     TZ: z.string().default('America/Sao_Paulo'),
     NODE_ENV: z.enum(['development', 'production', 'test']).default('production'),
 })
