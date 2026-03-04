@@ -1,3 +1,5 @@
+export const dynamic = 'force-dynamic'
+
 import { db } from '@/db'
 import { cadenceSuggestions } from '@/db/schema/cadence'
 import { crmPeople } from '@/db/schema/crm'

@@ -1,8 +1,9 @@
 import type { Config } from "@netlify/functions"
 
 export default async () => {
-    const siteUrl = process.env.URL || 'http://localhost:3000'
-    const secret = process.env.CRON_SECRET || 'not-set'
+    const siteUrl = process.env.URL || 'https://linkedstart2.netlify.app'
+    const secret = process.env.CRON_SECRET
+    if (!secret) { console.error('[cron-sync-analytics] CRON_SECRET not set'); return }
 
     try {
         const res = await fetch(`${siteUrl}/api/cron/sync-analytics`, {

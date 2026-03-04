@@ -1,3 +1,5 @@
+export const dynamic = 'force-dynamic'
+
 import { db } from '@/db'
 import { abmSignals } from '@/db/schema/signals'
 import { monitoredProfiles } from '@/db/schema/profiles'

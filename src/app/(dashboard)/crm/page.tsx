@@ -1,3 +1,5 @@
+export const dynamic = 'force-dynamic'
+
 import { db } from '@/db'
 import { crmPeople } from '@/db/schema/crm'
 import { eq, desc } from 'drizzle-orm'
