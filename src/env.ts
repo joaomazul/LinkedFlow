@@ -22,9 +22,11 @@ const schema = z.object({
     NODE_ENV: z.enum(['development', 'production', 'test']).default('production'),
 })
 
+// Detect build phase on any platform — never throw during build/prerender
 const isBuildPhase =
     process.env.NEXT_PHASE === 'phase-production-build' ||
-    process.env.NETLIFY === 'true' && process.env.CONTEXT === undefined
+    process.env.NEXT_PHASE === 'phase-production-server' ||
+    process.env.NETLIFY === 'true'
 
 const parsed = schema.safeParse(process.env)
 

@@ -26,13 +26,15 @@ export const metadata: Metadata = {
 
 import { KeyboardShortcutsProvider } from "@/components/providers/KeyboardShortcutsProvider";
 import { OnboardingGuard } from "@/components/providers/OnboardingGuard";
-import { env } from "@/env";
 
 export default function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  // Read directly from process.env to avoid env.ts throwing during prerender
+  const defaultAccountId = process.env.UNIPILE_LINKEDIN_ACCOUNT_ID || ''
+
   return (
     <ClerkProvider
       appearance={{
@@ -51,7 +53,7 @@ export default function RootLayout({
           <TooltipProvider>
             <Providers>
               <KeyboardShortcutsProvider>
-                <OnboardingGuard defaultAccountId={env.UNIPILE_LINKEDIN_ACCOUNT_ID}>
+                <OnboardingGuard defaultAccountId={defaultAccountId}>
                   {children}
                 </OnboardingGuard>
               </KeyboardShortcutsProvider>
@@ -63,4 +65,3 @@ export default function RootLayout({
     </ClerkProvider>
   );
 }
-// Checked and layout doesn't have maps.
