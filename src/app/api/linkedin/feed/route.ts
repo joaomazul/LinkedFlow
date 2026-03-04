@@ -10,8 +10,20 @@ import { logger } from '@/lib/logger'
 export const dynamic = 'force-dynamic'
 export const runtime = 'nodejs'
 
-// Time budget: stop processing before Netlify kills the function
-const MAX_SYNC_MS = Number(process.env.SYNC_TIME_BUDGET_MS ?? 9000)
+// Time budget: stop processing before Netlify kills the function (~10s free, ~26s paid)
+const MAX_SYNC_MS = Number(process.env.SYNC_TIME_BUDGET_MS ?? 8000)
+// Max time per individual profile sync (must be < MAX_SYNC_MS)
+const PER_PROFILE_TIMEOUT_MS = 5000
+
+/** Wraps a promise with a hard timeout — rejects if not resolved in time */
+function withTimeout<T>(promise: Promise<T>, ms: number, label: string): Promise<T> {
+    return Promise.race([
+        promise,
+        new Promise<T>((_, reject) =>
+            setTimeout(() => reject(new Error(`Timeout: ${label} (${ms}ms)`)), ms)
+        ),
+    ])
+}
 
 export async function GET(req: Request) {
     try {
@@ -59,23 +71,32 @@ export async function GET(req: Request) {
                 logger.info({ skippedCount, syncing: profilesToSync.length }, 'Perfis sincronizados < 5min atrás — pulando')
             }
 
-            const BATCH_SIZE = 5
-            const INTER_BATCH_DELAY_MS = 800
+            const BATCH_SIZE = 3
             let timedOut = false
 
             for (let i = 0; i < profilesToSync.length; i += BATCH_SIZE) {
-                // Check time budget before starting a new batch
-                if (Date.now() - syncStart > MAX_SYNC_MS) {
+                // Hard check: stop before Netlify kills us
+                const elapsed = Date.now() - syncStart
+                if (elapsed > MAX_SYNC_MS) {
                     timedOut = true
-                    const remaining = profilesToSync.length - i
-                    logger.warn({ elapsed: Date.now() - syncStart, synced: syncedCount, remaining }, 'Time budget exceeded — stopping sync early')
+                    logger.warn({ elapsed, synced: syncedCount, remaining: profilesToSync.length - i }, 'Time budget exceeded — stopping')
                     break
                 }
+
+                // Dynamic per-profile timeout: remaining budget, capped at PER_PROFILE_TIMEOUT_MS
+                const remainingBudget = MAX_SYNC_MS - elapsed
+                const profileTimeout = Math.min(PER_PROFILE_TIMEOUT_MS, remainingBudget)
 
                 const batch = profilesToSync.slice(i, i + BATCH_SIZE)
 
                 const results = await Promise.allSettled(
-                    batch.map(profile => fetchAndCacheProfilePosts(userId, profile))
+                    batch.map(profile =>
+                        withTimeout(
+                            fetchAndCacheProfilePosts(userId, profile),
+                            profileTimeout,
+                            profile.name || profile.id
+                        )
+                    )
                 )
 
                 results.forEach((result, idx) => {
@@ -91,11 +112,6 @@ export async function GET(req: Request) {
                         }, 'Falha ao buscar posts do perfil — continuando com os demais')
                     }
                 })
-
-                // Delay entre lotes para não estourar rate limit
-                if (i + BATCH_SIZE < profilesToSync.length) {
-                    await new Promise(resolve => setTimeout(resolve, INTER_BATCH_DELAY_MS))
-                }
             }
 
             logger.info({ syncedCount, failedCount, timedOut, elapsed: Date.now() - syncStart }, 'Sincronização manual concluída')
