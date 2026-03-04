@@ -22,7 +22,6 @@ export function AppShell({ children, title }: AppShellProps) {
     const isFeed = pathname === '/feed'
     const [isSidebarOpen, setIsSidebarOpen] = React.useState(false)
 
-    const setLinkedinAccount = useSettingsStore(s => s.setLinkedinAccount)
     const setSettings = useSettingsStore(s => s.setSettings)
     const updatePersona = useSettingsStore(s => s.updatePersona)
     const updateCommentStyle = useSettingsStore(s => s.updateCommentStyle)
@@ -87,7 +86,7 @@ export function AppShell({ children, title }: AppShellProps) {
             }
         }
         hydrate()
-    }, [setLinkedinAccount, setSettings, updatePersona, updateCommentStyle, setProfiles])
+    }, [setSettings, updatePersona, updateCommentStyle, setProfiles, setGroups])
 
     return (
         <div className="flex h-screen overflow-hidden bg-page">

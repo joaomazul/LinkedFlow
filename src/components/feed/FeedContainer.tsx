@@ -1,9 +1,10 @@
 "use client";
 
-import React, { useMemo, useState } from 'react'
+import React, { useMemo, useState, useEffect } from 'react'
 import { useFeed } from '@/hooks/useFeed'
 import { useProfilesStore } from '@/store/profiles.store'
 import { useSettingsStore } from '@/store/settings.store'
+import { useFeedStore } from '@/store/feed.store'
 import { PostCard } from '@/components/feed/PostCard'
 import { PostCardSkeleton } from '@/components/feed/PostCardSkeleton'
 import { EmptyFeedState, ErrorState } from '@/components/feed/EmptyFeedState'
@@ -27,6 +28,13 @@ export function FeedContainer() {
         refetch,
         isFetching
     } = useFeed()
+
+    // Sync lastRefreshedAt to feed store so Topbar can display it
+    useEffect(() => {
+        if (feedResponse && !isLoading) {
+            useFeedStore.setState({ lastRefreshedAt: new Date().toISOString() })
+        }
+    }, [feedResponse, isLoading])
 
     // Extrai o array SEMPRE com fallback para []
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
