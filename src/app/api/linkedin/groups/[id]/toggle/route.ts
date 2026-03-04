@@ -5,6 +5,8 @@ import { success, apiError } from '@/lib/utils/api-response'
 import { eq, and } from 'drizzle-orm'
 import { logger } from '@/lib/logger'
 
+export const dynamic = 'force-dynamic'
+
 export async function POST(
     req: Request,
     { params }: { params: Promise<{ id: string }> }

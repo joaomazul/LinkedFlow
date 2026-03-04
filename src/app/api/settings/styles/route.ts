@@ -3,6 +3,8 @@ import { getStylesByUser, getActiveStylesByUser, createStyle, updateStyle, delet
 import { getAuthenticatedUserId } from '@/lib/auth/user'
 import { success, apiError } from '@/lib/utils/api-response'
 
+export const dynamic = 'force-dynamic'
+
 export async function GET(req: Request) {
     try {
         const userId = await getAuthenticatedUserId()

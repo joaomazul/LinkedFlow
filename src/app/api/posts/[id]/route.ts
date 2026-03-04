@@ -6,6 +6,8 @@ import { eq, and } from 'drizzle-orm'
 import { success, apiError } from '@/lib/utils/api-response'
 import { publishLinkedInPost } from '@/lib/unipile/posts'
 
+export const dynamic = 'force-dynamic'
+
 export async function POST(
     req: Request,
     { params }: { params: Promise<{ id: string }> }

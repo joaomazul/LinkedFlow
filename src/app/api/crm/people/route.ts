@@ -5,6 +5,8 @@ import { eq, desc, sql, and, ilike, or } from 'drizzle-orm'
 import { getAuthenticatedUserId } from '@/lib/auth/user'
 import { createApiResponse } from '@/lib/api-response'
 
+export const dynamic = 'force-dynamic'
+
 export async function GET(req: NextRequest) {
     try {
         const userId = await getAuthenticatedUserId()

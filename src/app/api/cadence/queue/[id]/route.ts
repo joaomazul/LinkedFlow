@@ -8,6 +8,8 @@ import { createApiResponse } from '@/lib/api-response'
 import { executeLinkedInAction } from '@/lib/campaigns/execute-action'
 import { appSettings } from '@/db/schema'
 
+export const dynamic = 'force-dynamic'
+
 export async function POST(
     req: NextRequest,
     { params }: { params: Promise<{ id: string }> }

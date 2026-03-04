@@ -7,6 +7,8 @@ import { success, apiError } from '@/lib/utils/api-response'
 import { logger } from '@/lib/logger'
 import { eq, and } from 'drizzle-orm'
 
+export const dynamic = 'force-dynamic'
+
 export async function POST(req: Request) {
     try {
         const userId = await getAuthenticatedUserId()

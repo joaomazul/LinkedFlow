@@ -6,6 +6,8 @@ import { lt, and, eq } from 'drizzle-orm'
 import { logger } from '@/lib/logger'
 import { env } from '@/env'
 
+export const dynamic = 'force-dynamic'
+
 export async function GET(req: Request) {
     if (req.headers.get('Authorization') !== `Bearer ${env.CRON_SECRET}`) {
         return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })

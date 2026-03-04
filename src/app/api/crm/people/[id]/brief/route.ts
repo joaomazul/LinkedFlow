@@ -6,6 +6,8 @@ import { getAuthenticatedUserId } from '@/lib/auth/user'
 import { createApiResponse } from '@/lib/api-response'
 import { openrouterChat, OPENROUTER_MODEL } from '@/lib/openrouter/client'
 
+export const dynamic = 'force-dynamic'
+
 export async function POST(
     req: NextRequest,
     { params }: { params: Promise<{ id: string }> }

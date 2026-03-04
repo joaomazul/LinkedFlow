@@ -5,6 +5,8 @@ import { db } from '@/db'
 import { engagementInsights } from '@/db/schema'
 import { and, eq, desc } from 'drizzle-orm'
 
+export const dynamic = 'force-dynamic'
+
 export async function GET(request: Request) {
     try {
         const userId = await getAuthenticatedUserId()

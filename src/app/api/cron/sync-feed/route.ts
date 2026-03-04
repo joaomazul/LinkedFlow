@@ -7,6 +7,8 @@ import { fetchAndCacheProfilePosts } from '@/app/api/linkedin/feed/route'
 import { createLogger } from '@/lib/logger'
 import { env } from '@/env'
 
+export const dynamic = 'force-dynamic'
+
 const log = createLogger('cron/sync-feed')
 
 const BATCH_SIZE = 5

@@ -5,6 +5,8 @@ import { db } from '@/db'
 import { engagementInsights } from '@/db/schema'
 import { and, eq } from 'drizzle-orm'
 
+export const dynamic = 'force-dynamic'
+
 export async function PATCH(
     request: Request,
     { params }: { params: Promise<{ id: string }> }

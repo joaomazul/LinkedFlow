@@ -3,6 +3,8 @@ import { getActivePersona, upsertPersona } from '@/db/queries/settings.queries'
 import { getAuthenticatedUserId } from '@/lib/auth/user'
 import { success, apiError } from '@/lib/utils/api-response'
 
+export const dynamic = 'force-dynamic'
+
 function buildPersonaPrompt(data: Record<string, unknown>): string {
     const parts = []
     if (data.personaName) parts.push(`Você é ${data.personaName}.`)

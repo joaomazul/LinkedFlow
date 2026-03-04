@@ -5,6 +5,8 @@ import { db } from '@/db'
 import { postPerformance, generatedPosts } from '@/db/schema'
 import { and, eq, desc, gte, lte } from 'drizzle-orm'
 
+export const dynamic = 'force-dynamic'
+
 export async function GET(request: Request) {
     try {
         const userId = await getAuthenticatedUserId()

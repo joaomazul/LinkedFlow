@@ -5,6 +5,8 @@ import { getAuthenticatedUserId } from '@/lib/auth/user'
 import { logger } from '@/lib/logger'
 import { env } from '@/env'
 
+export const dynamic = 'force-dynamic'
+
 export async function GET() {
     try {
         const userId = await getAuthenticatedUserId()
