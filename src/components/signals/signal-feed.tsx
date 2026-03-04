@@ -58,7 +58,7 @@ export function SignalFeed({ initialSignals }: { initialSignals: any[] }) {
                         <div className="flex gap-4">
                             <Avatar className="h-10 w-10">
                                 <AvatarImage src={profileAvatar} />
-                                <AvatarFallback>{profileName.charAt(0)}</AvatarFallback>
+                                <AvatarFallback>{(profileName || 'P').charAt(0)}</AvatarFallback>
                             </Avatar>
                             <div className="flex-1 min-w-0">
                                 <div className="flex items-center justify-between gap-2">

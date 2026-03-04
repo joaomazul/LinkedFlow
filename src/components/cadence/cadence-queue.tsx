@@ -70,7 +70,8 @@ export function CadenceQueue({ initialSuggestions }: { initialSuggestions: any[]
     return (
         <div className="space-y-6">
             {suggestions.map((sug) => {
-                const { suggestion, personName, personAvatar, personHeadline } = sug
+                const { suggestion, personAvatar, personHeadline } = sug
+                const personName = sug.personName || 'Contato'
                 const isPending = suggestion.status === 'pending'
                 const urgency = suggestion.urgencyScore || 50
 

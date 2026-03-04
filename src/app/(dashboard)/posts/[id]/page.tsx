@@ -179,14 +179,15 @@ export default function PostEditorPage() {
     )
 }
 
-function ScoreItem({ label, value }: { label: string, value: number }) {
+function ScoreItem({ label, value }: { label: string, value?: number | null }) {
+    const score = value ?? 0
     return (
         <div className="space-y-1">
             <div className="flex justify-between text-xs">
                 <span className="font-medium">{label}</span>
-                <span>{value}%</span>
+                <span>{score}%</span>
             </div>
-            <Progress value={value} className="h-1" />
+            <Progress value={score} className="h-1" />
         </div>
     )
 }

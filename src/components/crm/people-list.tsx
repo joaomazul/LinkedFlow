@@ -32,7 +32,7 @@ export function PeopleList({ initialPeople }: { initialPeople: any[] }) {
                         <div className="flex items-start gap-4">
                             <Avatar className="h-12 w-12">
                                 <AvatarImage src={person.avatarUrl} alt={person.name} />
-                                <AvatarFallback>{person.name.charAt(0)}</AvatarFallback>
+                                <AvatarFallback>{(person.name || 'C').charAt(0)}</AvatarFallback>
                             </Avatar>
                             <div className="flex-1 min-w-0">
                                 <h3 className="font-semibold text-lg truncate">{person.name}</h3>

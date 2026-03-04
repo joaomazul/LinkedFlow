@@ -19,8 +19,6 @@ export async function GET(req: NextRequest) {
         const limit = Math.min(Math.max(parseInt(searchParams.get('limit') || '50') || 50, 1), 100)
         const offset = Math.max(parseInt(searchParams.get('offset') || '0') || 0, 0)
 
-        let query = db.select().from(crmPeople).where(eq(crmPeople.userId, userId))
-
         const filters = [eq(crmPeople.userId, userId)]
         if (status) filters.push(eq(crmPeople.status, status))
         if (search) {

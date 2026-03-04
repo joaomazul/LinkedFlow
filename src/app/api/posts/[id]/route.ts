@@ -10,6 +10,28 @@ import { publishLinkedInPost } from '@/lib/unipile/posts'
 export const dynamic = 'force-dynamic'
 export const runtime = 'nodejs'
 
+export async function GET(
+    req: Request,
+    { params }: { params: Promise<{ id: string }> }
+) {
+    try {
+        const userId = await getAuthenticatedUserId()
+        const { id: postId } = await params
+        const validation = validateUUID(postId)
+        if (!validation.valid) return validation.error
+
+        const [post] = await db.select()
+            .from(generatedPosts)
+            .where(and(eq(generatedPosts.id, postId), eq(generatedPosts.userId, userId)))
+            .limit(1)
+
+        if (!post) return apiError('Post não encontrado', 404)
+        return success(post)
+    } catch (error) {
+        return apiError('Erro ao buscar post', 500)
+    }
+}
+
 export async function POST(
     req: Request,
     { params }: { params: Promise<{ id: string }> }
