@@ -92,13 +92,17 @@ export function FeedContainer() {
     }, [dbPosts, profiles])
 
     const filteredPosts = useMemo(() => {
-        if (!searchQuery) return posts
-        const q = searchQuery.toLowerCase()
-        return posts.filter(p =>
-            (p.text && p.text.toLowerCase().includes(q)) ||
-            (p.authorName && p.authorName.toLowerCase().includes(q))
-        )
-    }, [posts, searchQuery])
+        // Filter by active profiles first (instant removal when toggled off)
+        let filtered = posts.filter(p => activeProfileIds.includes(p.authorId))
+        if (searchQuery) {
+            const q = searchQuery.toLowerCase()
+            filtered = filtered.filter(p =>
+                (p.text && p.text.toLowerCase().includes(q)) ||
+                (p.authorName && p.authorName.toLowerCase().includes(q))
+            )
+        }
+        return filtered
+    }, [posts, searchQuery, activeProfileIds])
 
     const handleRefresh = async () => {
         const toastId = toast.loading('Sincronizando feed...')

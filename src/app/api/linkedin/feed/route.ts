@@ -43,12 +43,21 @@ export async function GET(req: Request) {
         if (isManualSync) {
             logger.info({ userId, profiles: activeProfiles.length }, 'Sincronização manual solicitada')
 
-            // Manual sync: sincroniza TODOS os perfis ativos (sem cooldown de 30min)
-            const profilesToSync = activeProfiles
+            // Smart cooldown: 5min para manual (vs 30min que era antes)
+            // Perfis nunca sincronizados são sempre incluídos
+            const fiveMinAgo = new Date(Date.now() - 5 * 60 * 1000)
+            const profilesToSync = activeProfiles.filter(p =>
+                !p.lastFetchedAt || new Date(p.lastFetchedAt) < fiveMinAgo
+            )
+            const skippedCount = activeProfiles.length - profilesToSync.length
 
-            // Lotes de 3 (menor = menos chance de rate limit)
-            const BATCH_SIZE = 3
-            const INTER_BATCH_DELAY_MS = 2000
+            if (skippedCount > 0) {
+                logger.info({ skippedCount, syncing: profilesToSync.length }, 'Perfis sincronizados < 5min atrás — pulando')
+            }
+
+            // Lotes de 5 com 1s delay — otimizado para Netlify timeout (~10-26s)
+            const BATCH_SIZE = 5
+            const INTER_BATCH_DELAY_MS = 1000
 
             for (let i = 0; i < profilesToSync.length; i += BATCH_SIZE) {
                 const batch = profilesToSync.slice(i, i + BATCH_SIZE)
