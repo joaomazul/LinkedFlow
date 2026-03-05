@@ -171,7 +171,7 @@ export function CadenceQueue({ initialSuggestions }: { initialSuggestions: any[]
                                     </>
                                 ) : (
                                     <div className="mt-4 opacity-70">
-                                        <p className="text-xs text-muted-foreground mb-1 font-semibold">{suggestion.status === 'done' ? 'Executado:' : 'Ignorado:'}</p>
+                                        <p className="text-xs text-muted-foreground mb-1 font-semibold">{suggestion.status === 'executed' ? 'Executado:' : 'Ignorado:'}</p>
                                         <div className="text-sm p-3 bg-background border rounded-md whitespace-pre-wrap">
                                             {suggestion.suggestedContent}
                                         </div>

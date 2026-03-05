@@ -24,7 +24,7 @@ export function scheduleLeadsActions(
 
     // 1. LIKE (Geralmente a primeira ação)
     if (campaign.actionLike) {
-        const delay = getRandomInt(campaign.delayLikeMin || 30, campaign.delayLikeMax || 120)
+        const delay = getRandomInt(campaign.delayLikeMin ?? 30, campaign.delayLikeMax ?? 120)
         const scheduledFor = new Date(lastActionTime + delay * 1000)
         actions.push({ type: 'like', scheduledFor })
         // Opcional: não atualizar lastActionTime para permitir Reply/DM em paralelo ou pouco depois do Like
@@ -32,7 +32,7 @@ export function scheduleLeadsActions(
 
     // 2. REPLY
     if (campaign.actionReply) {
-        const delay = getRandomInt(campaign.delayReplyMin || 60, campaign.delayReplyMax || 300)
+        const delay = getRandomInt(campaign.delayReplyMin ?? 60, campaign.delayReplyMax ?? 300)
         const scheduledFor = new Date(lastActionTime + delay * 1000)
         actions.push({ type: 'reply', scheduledFor })
         lastActionTime = scheduledFor.getTime()
@@ -40,7 +40,7 @@ export function scheduleLeadsActions(
 
     // 3. DM
     if (campaign.actionDm) {
-        const delay = getRandomInt(campaign.delayDmMin || 300, campaign.delayDmMax || 1800)
+        const delay = getRandomInt(campaign.delayDmMin ?? 300, campaign.delayDmMax ?? 1800)
         const scheduledFor = new Date(lastActionTime + delay * 1000)
         actions.push({ type: 'dm', scheduledFor })
         lastActionTime = scheduledFor.getTime()

@@ -62,9 +62,9 @@ export async function POST(
             occurredAt: new Date()
         }).onConflictDoNothing()
 
-        // 4. Marcar sugestão como completada
+        // 4. Marcar sugestão como executada
         await db.update(cadenceSuggestions)
-            .set({ status: 'completed', updatedAt: new Date() })
+            .set({ status: 'executed', updatedAt: new Date() })
             .where(eq(cadenceSuggestions.id, id))
 
         // 5. Atualizar perfil da pessoa no CRM

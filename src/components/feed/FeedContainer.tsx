@@ -85,7 +85,7 @@ export function FeedContainer() {
                     comments: post.commentsCount || 0,
                     reposts: post.repostsCount || 0,
                 },
-                postedAt: new Date(post.postedAt).toISOString(),
+                postedAt: post.postedAt ? new Date(post.postedAt).toISOString() : new Date().toISOString(),
                 fetchedAt: post.fetchedAt ? new Date(post.fetchedAt).toISOString() : new Date().toISOString(),
                 commentStatus: post.commentStatus,
             } as LinkedInPost
