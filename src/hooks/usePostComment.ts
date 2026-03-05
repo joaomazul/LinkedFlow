@@ -15,6 +15,8 @@ export function usePostComment() {
 
     return useMutation<{ commentId: string; posted: boolean }, Error, PostParams>({
         mutationFn: async ({ linkedinPostId, text, styleId }) => {
+            console.log('[usePostComment] Posting comment:', { linkedinPostId, textLen: text.length, styleId })
+            const t0 = performance.now()
             const res = await fetch(`/api/linkedin/posts/${encodeURIComponent(linkedinPostId)}/comment`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -22,8 +24,10 @@ export function usePostComment() {
             })
 
             const data = await res.json()
+            console.log('[usePostComment] Response:', { ok: data.ok, status: res.status, ms: Math.round(performance.now() - t0) })
 
             if (!res.ok || !data.ok) {
+                console.error('[usePostComment] Error:', data?.error)
                 throw new Error(data?.error?.message ?? `Erro ${res.status}`)
             }
 
@@ -31,12 +35,13 @@ export function usePostComment() {
         },
 
         onSuccess: (_, variables) => {
+            console.log('[usePostComment] Posted OK for:', variables.linkedinPostId)
             toast.success('Comentário publicado no LinkedIn!')
-            // Invalida histórico para atualizar o painel direito
             queryClient.invalidateQueries({ queryKey: ['comments-history'] })
         },
 
         onError: (err) => {
+            console.error('[usePostComment] Mutation error:', err.message)
             toast.error(err.message || 'Erro ao publicar. Tente novamente.')
         },
     })

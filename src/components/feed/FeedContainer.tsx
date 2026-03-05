@@ -22,6 +22,8 @@ export function FeedContainer() {
     const [searchQuery, setSearchQuery] = useState('')
     const [visibleCount, setVisibleCount] = useState(20)
 
+    console.log('[FeedContainer] Render — profiles:', profiles.length, '| active:', activeProfileIds.length, '| accountId:', linkedinAccountId ? 'SET' : 'MISSING')
+
     const {
         data: feedResponse,
         isLoading,
@@ -48,6 +50,8 @@ export function FeedContainer() {
                 : Array.isArray(feedResponse)
                     ? feedResponse
                     : []
+
+    console.log('[FeedContainer] useFeed state:', { isLoading, isFetching, error: error?.message ?? null, dbPostsCount: dbPosts.length, feedResponseType: typeof feedResponse })
 
     const posts: LinkedInPost[] = useMemo(() => {
         return dbPosts.map(post => {
@@ -92,6 +96,8 @@ export function FeedContainer() {
         }).filter(Boolean) as LinkedInPost[]
     }, [dbPosts, profiles])
 
+    console.log('[FeedContainer] Mapped posts:', posts.length, '| sample:', posts[0] ? { id: posts[0].id, author: posts[0].authorName, text: posts[0].text?.slice(0, 50) } : 'none')
+
     const filteredPosts = useMemo(() => {
         // Filter by active profiles first (instant removal when toggled off)
         let filtered = posts.filter(p => activeProfileIds.includes(p.authorId))
@@ -102,6 +108,7 @@ export function FeedContainer() {
                 (p.authorName && p.authorName.toLowerCase().includes(q))
             )
         }
+        console.log('[FeedContainer] Filtered posts:', filtered.length, '| searchQuery:', searchQuery || '(none)')
         return filtered
     }, [posts, searchQuery, activeProfileIds])
 
@@ -116,13 +123,16 @@ export function FeedContainer() {
     useEffect(() => { setVisibleCount(20) }, [searchQuery])
 
     const handleRefresh = async () => {
+        console.log('[FeedContainer] Manual refresh triggered')
         const toastId = toast.loading('Sincronizando feed...')
 
         try {
             const res = await fetch('/api/linkedin/feed?sync=true')
+            console.log('[FeedContainer] Sync response:', res.status)
             if (!res.ok) throw new Error('Falha ao sincronizar')
 
             const json = await res.json()
+            console.log('[FeedContainer] Sync data:', { syncedCount: json.data?.syncedCount, failedCount: json.data?.failedCount, skippedCount: json.data?.skippedCount })
             await refetch()
 
             // Update feed store timestamp
@@ -149,6 +159,7 @@ export function FeedContainer() {
                 toast.success(`Feed sincronizado (${syncedCount} perfis)${extra}`, { id: toastId })
             }
         } catch (err) {
+            console.error('[FeedContainer] Refresh FAILED:', err)
             toast.error('Erro na conexão com o servidor', {
                 id: toastId,
                 description: (err as Error).message,

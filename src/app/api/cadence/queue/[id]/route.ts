@@ -8,9 +8,11 @@ import { createApiResponse } from '@/lib/utils/api-response'
 import { validateUUID } from '@/lib/utils/validate-params'
 import { executeLinkedInAction } from '@/lib/campaigns/execute-action'
 import { appSettings } from '@/db/schema'
+import { createLogger } from '@/lib/logger'
 
 export const dynamic = 'force-dynamic'
 export const runtime = 'nodejs'
+const log = createLogger('api/cadence/queue')
 
 export async function POST(
     req: NextRequest,
@@ -22,6 +24,7 @@ export async function POST(
         if (!validation.valid) return validation.error
         const userId = await getAuthenticatedUserId()
         const { action, content, personId } = await req.json()
+        log.info({ userId, id, action, personId }, '[cadence] POST started')
 
         // 1. Verificar sugestão
         const [suggestion] = await db
@@ -30,25 +33,34 @@ export async function POST(
             .where(and(eq(cadenceSuggestions.id, id), eq(cadenceSuggestions.userId, userId)))
             .limit(1)
 
-        if (!suggestion) return createApiResponse.notFound('Sugestão não encontrada')
+        if (!suggestion) {
+            log.warn({ userId, id }, '[cadence] Suggestion not found')
+            return createApiResponse.notFound('Sugestão não encontrada')
+        }
 
         // 2. Executar ação no LinkedIn se solicitado
         if (action === 'execute') {
             const [settings] = await db.select().from(appSettings).where(eq(appSettings.userId, userId)).limit(1)
             const accountId = settings?.activeLinkedinAccountId
 
-            if (!accountId) return createApiResponse.badRequest('Conta LinkedIn não configurada')
+            if (!accountId) {
+                log.warn({ userId }, '[cadence] No LinkedIn account configured')
+                return createApiResponse.badRequest('Conta LinkedIn não configurada')
+            }
 
+            log.info({ userId, type: suggestion.type, personId }, '[cadence] Executing LinkedIn action')
             const result = await executeLinkedInAction(
                 suggestion.type as any,
                 accountId,
-                personId, // O target Id para DM/Invite é o profileId
+                personId,
                 content || suggestion.suggestedContent
             )
 
             if (!result.success) {
+                log.error({ userId, id, error: result.errorMessage }, '[cadence] LinkedIn action FAILED')
                 return createApiResponse.error(result.errorMessage || 'Falha na execução do LinkedIn')
             }
+            log.info({ userId, id }, '[cadence] LinkedIn action OK')
         }
 
         // 3. Registrar no CRM
@@ -76,9 +88,11 @@ export async function POST(
             })
             .where(eq(crmPeople.id, personId))
 
+        log.info({ userId, id, personId }, '[cadence] POST complete')
         return createApiResponse.success({ completed: true })
 
     } catch (error: any) {
+        log.error({ err: error.message }, '[cadence] POST FAILED')
         return createApiResponse.error(error.message)
     }
 }

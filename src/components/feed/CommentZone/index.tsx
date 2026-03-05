@@ -40,20 +40,23 @@ export function CommentZone({ post }: CommentZoneProps) {
 
     // ── Seleciona estilo e dispara geração ────────────────────────────────────
     const handleStyleSelect = useCallback(async (styleId: string) => {
+        console.log('[CommentZone] Style selected:', styleId, '| post:', post.id)
         setSelectedStyleId(styleId)
         setStage('generating')
 
         try {
+            const t0 = performance.now()
             const result = await generate.mutateAsync({
                 postText: post.text.slice(0, 2000),
                 postAuthor: post.authorName,
                 styleId,
             })
 
+            console.log('[CommentZone] Generation OK:', { options: result.options.length, ms: Math.round(performance.now() - t0) })
             setOptions(result.options)
             setStage('reviewing')
-        } catch {
-            // O erro já foi tratado no hook (toast)
+        } catch (err) {
+            console.error('[CommentZone] Generation FAILED:', err)
             setStage('selecting-style')
         }
     }, [post, generate])
@@ -68,17 +71,20 @@ export function CommentZone({ post }: CommentZoneProps) {
     // ── Publica o comentário ──────────────────────────────────────────────────
     const handlePublish = useCallback(async () => {
         if (!editedText.trim()) return
+        console.log('[CommentZone] Publishing comment on post:', post.linkedinPostId, '| length:', editedText.trim().length)
         setStage('posting')
 
         try {
+            const t0 = performance.now()
             await postComment.mutateAsync({
                 linkedinPostId: post.linkedinPostId,
                 text: editedText.trim(),
                 styleId: selectedStyleId ?? undefined,
             })
+            console.log('[CommentZone] Comment posted OK in', Math.round(performance.now() - t0), 'ms')
             setStage('posted')
-        } catch {
-            // Rollback: volta para aprovação com o texto preservado
+        } catch (err) {
+            console.error('[CommentZone] Comment post FAILED:', err)
             setStage('approving')
         }
     }, [editedText, post.linkedinPostId, selectedStyleId, postComment])

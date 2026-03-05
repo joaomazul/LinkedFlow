@@ -22,14 +22,18 @@ export function Topbar({ title, children, onMenuClick }: TopbarProps) {
 
     const handleRefresh = async () => {
         if (syncing) return
+        console.log('[Topbar] Sync triggered by user')
         setSyncing(true)
         const toastId = toast.loading('Sincronizando feed...')
+        const t0 = performance.now()
 
         try {
             const res = await fetch('/api/linkedin/feed?sync=true')
-            if (!res.ok) throw new Error('Falha ao sincronizar')
+            console.log('[Topbar] Sync response status:', res.status, '| ms:', Math.round(performance.now() - t0))
+            if (!res.ok) throw new Error(`Falha ao sincronizar (HTTP ${res.status})`)
 
             const json = await res.json()
+            console.log('[Topbar] Sync result:', json.data ? { syncedCount: json.data.syncedCount, failedCount: json.data.failedCount, skippedCount: json.data.skippedCount, failedProfiles: json.data.failedProfiles } : 'no data')
             await queryClient.invalidateQueries({ queryKey: ['feed'] })
             useFeedStore.setState({ lastRefreshedAt: new Date().toISOString() })
 
@@ -45,8 +49,10 @@ export function Topbar({ title, children, onMenuClick }: TopbarProps) {
                 toast.success(`Feed sincronizado (${syncedCount} perfis)`, { id: toastId })
             }
         } catch (err) {
+            console.error('[Topbar] Sync FAILED:', err)
             toast.error('Erro na conexão com o servidor', { id: toastId })
         } finally {
+            console.log('[Topbar] Sync finished in', Math.round(performance.now() - t0), 'ms')
             setSyncing(false)
         }
     }

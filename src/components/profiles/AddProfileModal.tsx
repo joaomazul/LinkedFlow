@@ -83,21 +83,26 @@ export function AddProfileModal({ open, onClose, inline, defaultGroupId }: AddPr
             return
         }
 
+        console.log('[AddProfileModal] Searching profile:', trimmed)
         setError(null)
         setStage('loading')
 
         try {
+            const t0 = performance.now()
             const encoded = encodeURIComponent(trimmed)
             const res = await fetch(`/api/linkedin/profiles/preview?url=${encoded}`)
             const data = await res.json()
+            console.log('[AddProfileModal] Preview response:', { ok: data.ok, status: res.status, ms: Math.round(performance.now() - t0) })
 
             if (!res.ok || !data.ok) {
                 throw new Error(data?.error?.message ?? 'Perfil não encontrado')
             }
 
+            console.log('[AddProfileModal] Profile resolved:', { name: data.data?.name, followers: data.data?.followerCount })
             setProfile(data.data)
             setStage('preview')
         } catch (err) {
+            console.error('[AddProfileModal] Search FAILED:', err)
             setError((err as Error).message || 'Erro ao buscar perfil. Tente novamente.')
             setStage('input')
         }
@@ -109,6 +114,7 @@ export function AddProfileModal({ open, onClose, inline, defaultGroupId }: AddPr
             setError('Nome do grupo é obrigatório')
             return
         }
+        console.log('[AddProfileModal] Creating group:', groupName.trim())
         setStage('saving')
         try {
             const res = await fetch('/api/linkedin/groups', {
@@ -119,11 +125,13 @@ export function AddProfileModal({ open, onClose, inline, defaultGroupId }: AddPr
             const data = await res.json()
             if (!res.ok || !data.ok) throw new Error(data?.error?.message || 'Erro ao criar grupo')
 
+            console.log('[AddProfileModal] Group created:', data.data?.id)
             addGroupToStore(data.data)
             toast.success('Grupo criado com sucesso!')
             setStage('success')
             setTimeout(() => handleClose(), 1000)
         } catch (err) {
+            console.error('[AddProfileModal] Group creation FAILED:', err)
             setError((err as Error).message)
             setStage('input')
         }
@@ -136,14 +144,17 @@ export function AddProfileModal({ open, onClose, inline, defaultGroupId }: AddPr
             setError('Insira ao menos uma URL')
             return
         }
+        console.log('[AddProfileModal] Batch import:', urls.length, 'URLs | group:', selectedGroupId || 'none')
         setStage('saving')
         try {
+            const t0 = performance.now()
             const res = await fetch('/api/linkedin/profiles/batch', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ urls, groupId: selectedGroupId || undefined }),
             })
             const data = await res.json()
+            console.log('[AddProfileModal] Batch result:', { ok: data.ok, status: res.status, ms: Math.round(performance.now() - t0), created: data.data?.createdCount })
             if (!res.ok || !data.ok) throw new Error(data?.error?.message || 'Erro na importação')
 
             toast.success(`${data.data.createdCount} perfis adicionados!`)
@@ -151,6 +162,7 @@ export function AddProfileModal({ open, onClose, inline, defaultGroupId }: AddPr
             setStage('success')
             setTimeout(() => handleClose(), 1500)
         } catch (err) {
+            console.error('[AddProfileModal] Batch import FAILED:', err)
             setError((err as Error).message)
             setStage('input')
         }
@@ -158,8 +170,10 @@ export function AddProfileModal({ open, onClose, inline, defaultGroupId }: AddPr
 
     const handleConfirm = useCallback(async () => {
         if (!profile) return
+        console.log('[AddProfileModal] Confirming profile:', profile.name, '| group:', selectedGroupId || 'none')
         setStage('saving')
         try {
+            const t0 = performance.now()
             const res = await fetch('/api/linkedin/profiles', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -170,6 +184,7 @@ export function AddProfileModal({ open, onClose, inline, defaultGroupId }: AddPr
                 }),
             })
             const data = await res.json()
+            console.log('[AddProfileModal] Confirm result:', { ok: data.ok, status: res.status, ms: Math.round(performance.now() - t0) })
             if (!res.ok || !data.ok) throw new Error(data?.error?.message ?? 'Erro ao adicionar perfil')
             setStage('success')
             queryClient.invalidateQueries({ queryKey: ['monitored-profiles'] })
@@ -177,6 +192,7 @@ export function AddProfileModal({ open, onClose, inline, defaultGroupId }: AddPr
             toast.success(`${profile.name} adicionado!`)
             setTimeout(() => handleClose(), 1500)
         } catch (err) {
+            console.error('[AddProfileModal] Confirm FAILED:', err)
             toast.error((err as Error).message)
             setStage('preview')
         }

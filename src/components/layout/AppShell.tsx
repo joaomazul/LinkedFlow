@@ -31,16 +31,27 @@ export function AppShell({ children, title }: AppShellProps) {
     // Hidratação DB -> Zustand (Caso localStore esteja vazio)
     React.useEffect(() => {
         async function hydrate() {
+            console.log('[AppShell] Hydration started — fetching /api/settings')
+            const t0 = performance.now()
             try {
                 // Sempre tentamos hidratar se estivermos logados para garantir paridade com DB
                 const res = await fetch('/api/settings')
                 const json = await res.json()
+                console.log('[AppShell] /api/settings response:', { ok: json.ok, status: res.status, ms: Math.round(performance.now() - t0) })
 
                 if (json.ok && json.data) {
                     const { data } = json
 
                     // Atualiza configurações básicas
                     const accountId = data.linkedinAccountId || process.env.NEXT_PUBLIC_UNIPILE_LINKEDIN_ACCOUNT_ID
+                    console.log('[AppShell] linkedinAccountId:', accountId ? `${accountId.slice(0, 8)}...` : 'MISSING')
+                    console.log('[AppShell] Data summary:', {
+                        profiles: data.profiles?.length ?? 0,
+                        groups: data.groups?.length ?? 0,
+                        persona: !!data.persona,
+                        styles: data.styles?.length ?? 0,
+                        isSetupComplete: data.isSetupComplete,
+                    })
 
                     setSettings({
                         linkedinAccountId: accountId || undefined,
@@ -52,6 +63,7 @@ export function AppShell({ children, title }: AppShellProps) {
                     }
                     if (data.groups) {
                         setGroups(data.groups)
+                        console.log('[AppShell] Groups loaded:', data.groups.map((g: { id: string; name: string }) => g.name))
                     }
                     if (data.profiles && data.profiles.length > 0) {
                         // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -71,6 +83,9 @@ export function AppShell({ children, title }: AppShellProps) {
                             addedAt: p.createdAt ? new Date(p.createdAt).toISOString() : new Date().toISOString(),
                             lastFetchedAt: p.lastFetchedAt ? new Date(p.lastFetchedAt).toISOString() : undefined,
                         })))
+                        console.log('[AppShell] Profiles hydrated:', data.profiles.map((p: { name: string; active: boolean }) => `${p.name}(${p.active ? 'ON' : 'OFF'})`))
+                    } else {
+                        console.warn('[AppShell] No profiles returned from settings API')
                     }
                     if (data.styles && data.styles.length > 0) {
                         data.styles.forEach((style: { styleKey: Parameters<typeof updateCommentStyle>[0]; prompt: string; active: boolean; label: string }) => {
@@ -81,9 +96,12 @@ export function AppShell({ children, title }: AppShellProps) {
                             })
                         })
                     }
+                    console.log('[AppShell] Hydration complete in', Math.round(performance.now() - t0), 'ms')
+                } else {
+                    console.error('[AppShell] Settings API returned non-ok:', json)
                 }
             } catch (err) {
-                console.error('Falha na hidratação de segurança:', err)
+                console.error('[AppShell] Hydration FAILED:', err)
             }
         }
         hydrate()

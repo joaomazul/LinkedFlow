@@ -17,7 +17,7 @@ export const ProfileRow = React.memo(function ProfileRow({ profileId }: ProfileR
     if (!profile) return null
 
     const handleToggle = async () => {
-        // Otimisticamente atualiza o store
+        console.log('[ProfileRow] Toggle:', profile.name, '| current:', profile.active, '→', !profile.active)
         toggleProfile(profile.id)
 
         try {
@@ -26,9 +26,13 @@ export const ProfileRow = React.memo(function ProfileRow({ profileId }: ProfileR
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ active: !profile.active }),
             })
-            if (!res.ok) throw new Error('Falha ao atualizar')
-        } catch {
-            // Reverte se a chamada falhar
+            if (!res.ok) {
+                console.error('[ProfileRow] Toggle API failed:', res.status)
+                throw new Error('Falha ao atualizar')
+            }
+            console.log('[ProfileRow] Toggle saved OK')
+        } catch (err) {
+            console.error('[ProfileRow] Toggle FAILED — reverting:', err)
             toggleProfile(profile.id)
             toast.error('Não foi possível salvar a alteração')
         }
